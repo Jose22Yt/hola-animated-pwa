@@ -47,20 +47,53 @@
         <p>Explora tu biblioteca musical próximamente.</p>
       </section>
 
-      <!-- Theme section with selectable light and dark modes -->
+      <!-- Theme section with selectable light, dark and glass modes -->
       <section id="theme" class="section">
         <h2>Temas</h2>
         <p>Selecciona un tema para la aplicación.</p>
         <div class="theme-options">
           <button id="theme-light" class="theme-btn">Tema Claro</button>
           <button id="theme-dark" class="theme-btn">Tema Oscuro</button>
+          <button id="theme-glass" class="theme-btn">Tema Cristal</button>
         </div>
       </section>
 
-      <!-- Settings section placeholder -->
+      <!-- Settings section with configurable options -->
       <section id="settings" class="section">
         <h2>Ajustes</h2>
-        <p>Configura tus preferencias aquí. Próximamente.</p>
+        <div class="settings-group">
+          <h3>Animaciones</h3>
+          <label>
+            <input type="checkbox" id="animations-toggle" checked /> Activar animaciones
+          </label>
+        </div>
+        <div class="settings-group">
+          <h3>Sonidos</h3>
+          <label>
+            <input type="checkbox" id="sounds-toggle" checked /> Activar sonidos
+          </label>
+        </div>
+        <div class="settings-group">
+          <h3>Escala (DPI)</h3>
+          <input type="range" id="dpi-range" min="0.8" max="1.2" step="0.05" value="1" />
+        </div>
+        <div class="settings-group">
+          <h3>Fuente</h3>
+          <select id="font-select">
+            <option value="default">Predeterminada</option>
+            <option value="serif">Serif</option>
+            <option value="cursive">Cursiva</option>
+            <option value="mono">Monospace</option>
+            <option value="fantasy">Fantasía</option>
+            <option value="elegant">Elegante</option>
+          </select>
+        </div>
+
+        <!-- Animation speed control -->
+        <div class="settings-group">
+          <h3>Velocidad de animación</h3>
+          <input type="range" id="animation-range" min="0.5" max="2" step="0.1" value="1" />
+        </div>
       </section>
 
       <!-- Profile section placeholder -->

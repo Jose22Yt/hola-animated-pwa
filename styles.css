@@ -13,6 +13,10 @@
   --secondary-color: #03dac5;
   --accent-color: #ff0266;
   --bg-gradient: linear-gradient(135deg, #6200ea, #ff0266, #03dac5);
+  /* Scale factor for DPI/resolution adjustments (1 = 100%). Updated via JS */
+  --dpi-scale: 1;
+  /* Global animation speed multiplier (1 = normal). Updated via JS */
+  --anim-speed: 1;
 }
 
 html,
@@ -22,6 +26,11 @@ body {
   height: 100%;
   font-family: Arial, Helvetica, sans-serif;
   overflow: hidden;
+
+  /* Apply DPI scaling through CSS variable. This multiplies the base font size.
+     The --dpi-scale variable is updated dynamically via JavaScript when the
+     user moves the DPI slider in settings. */
+  font-size: calc(16px * var(--dpi-scale));
 }
 
 /* Each section fills the available space minus the navigation bar.  Sections
@@ -94,7 +103,8 @@ body {
   background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: textGradient 8s ease infinite;
+  /* Animation uses variable multiplier for its duration */
+  animation: textGradient calc(8s * var(--anim-speed)) ease infinite;
 }
 
 @keyframes textGradient {
@@ -116,7 +126,12 @@ body {
   color: #ffffff;
   background: var(--bg-gradient);
   background-size: 400% 400%;
-  animation: gradientAnimation 15s ease infinite;
+  animation: gradientAnimation calc(15s * var(--anim-speed)) ease infinite;
+
+  /* Scale the entire interface according to the DPI setting. The zoom property
+     scales all child elements proportionally. This is updated via the
+     --dpi-scale CSS variable in script.js when the user moves the DPI slider. */
+  zoom: var(--dpi-scale);
 }
 
 /* Animate the gradient to create a subtle shifting effect */
@@ -135,7 +150,10 @@ body {
 /* Container for the app content */
 .app {
   text-align: center;
-  animation: fadeIn 1.5s ease-out forwards;
+  animation-name: fadeIn;
+  animation-duration: calc(1.5s * var(--anim-speed));
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
 }
 
 /* Fade the container in from below */
@@ -155,7 +173,9 @@ body {
   font-size: 5rem;
   font-weight: bold;
   margin: 0;
-  animation: bounceIn 1s ease-out;
+  animation-name: bounceIn;
+  animation-duration: calc(1s * var(--anim-speed));
+  animation-timing-function: ease-out;
 }
 
 @keyframes bounceIn {
@@ -180,7 +200,11 @@ body {
   font-size: 1.4rem;
   margin-top: 1rem;
   opacity: 0;
-  animation: slideUp 1s ease-out 0.5s forwards;
+  animation-name: slideUp;
+  animation-duration: calc(1s * var(--anim-speed));
+  animation-timing-function: ease-out;
+  animation-delay: calc(0.5s * var(--anim-speed));
+  animation-fill-mode: forwards;
 }
 
 @keyframes slideUp {
@@ -286,4 +310,87 @@ body.theme-dark .nav-item {
 body.theme-dark .nav-item.active,
 body.theme-dark .nav-item.active .nav-icon {
   color: var(--secondary-color);
+}
+
+/* Glass theme overrides (iOS-like frosted glass effect) */
+body.theme-glass {
+  /* Use a translucent gradient to simulate glass with backdrop blur */
+  /* Use a lighter translucent gradient to create a frosted glass effect */
+  --bg-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.2));
+  color: #000000;
+  background: var(--bg-gradient);
+  backdrop-filter: blur(30px);
+}
+body.theme-glass .bottom-nav {
+  background: rgba(255, 255, 255, 0.6);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+body.theme-glass .nav-item {
+  color: #000000;
+}
+body.theme-glass .nav-item.active,
+body.theme-glass .nav-item.active .nav-icon {
+  color: var(--accent-color);
+}
+
+/* Styling for the new glass theme button */
+#theme-glass.theme-btn {
+  background-color: rgba(255, 255, 255, 0.4);
+  color: #000000;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Settings page layout */
+.settings-group {
+  margin: 1rem 0;
+  width: 90%;
+  max-width: 500px;
+  text-align: left;
+}
+.settings-group h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.2rem;
+}
+.settings-group label {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+}
+.settings-group label input[type="checkbox"] {
+  margin-right: 0.5rem;
+  transform: scale(1.3);
+}
+.settings-group input[type="range"],
+.settings-group select {
+  width: 100%;
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  padding: 0.3rem;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Font style classes for user selection */
+body.font-serif {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+body.font-cursive {
+  font-family: 'Comic Sans MS', 'Brush Script MT', cursive;
+}
+body.font-mono {
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* Additional font style classes */
+body.font-fantasy {
+  font-family: 'Papyrus', 'Lucida Handwriting', fantasy;
+}
+body.font-elegant {
+  font-family: 'Palatino Linotype', 'Book Antiqua', 'Palatino', serif;
+}
+
+/* Disable animations globally when animations are turned off */
+body.no-animations * {
+  animation: none !important;
+  transition: none !important;
 }
