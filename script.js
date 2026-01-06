@@ -231,4 +231,284 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('animSpeed', val);
     });
   }
+
+  /*
+   * Música: búsqueda y reproducción
+   *
+   * Esta sección implementa un buscador de canciones que consulta dos
+   * APIs sin autenticación: Audius y Piped (front‑end de YouTube). Las
+   * canciones encontradas se muestran en una lista. Al hacer clic en
+   * una canción, se reproduce su audio de 30‑90 segundos en un
+   * reproductor personalizable integrado en la misma pantalla.
+   */
+  const musicQuery = document.getElementById('music-query');
+  const musicBtn = document.getElementById('music-search-btn');
+  const musicResults = document.getElementById('music-results');
+  const musicPlayer = document.getElementById('music-player');
+  const coverEl = document.getElementById('player-cover');
+  const titleEl = document.getElementById('player-title');
+  const artistEl = document.getElementById('player-artist');
+  const progressBar = document.getElementById('player-progress-bar');
+  const progressContainer = document.getElementById('player-progress');
+  const playBtn = document.getElementById('player-play');
+  const prevBtn = document.getElementById('player-prev');
+  const nextBtn = document.getElementById('player-next');
+  const volumeRange = document.getElementById('player-volume');
+  // Radio buttons to filter music source
+  const sourceRadios = document.querySelectorAll('input[name="music-source"]');
+  // Create a single Audio element for playback
+  const audio = new Audio();
+  let currentTrack = null;
+  let currentPlaylist = [];
+  let currentTrackIndex = -1;
+
+  // Search button handler
+  if (musicBtn && musicQuery) {
+    musicBtn.addEventListener('click', () => {
+      const query = musicQuery.value.trim();
+      if (query) searchMusic(query);
+    });
+    musicQuery.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const query = musicQuery.value.trim();
+        if (query) searchMusic(query);
+      }
+    });
+  }
+
+  // Perform a search across Audius and Piped
+  async function searchMusic(query) {
+    // Clear previous results and show a loading message
+    if (musicResults) {
+      musicResults.innerHTML = '<p>Buscando…</p>';
+    }
+    let tracks = [];
+    // Determine selected source filter
+    let filter = 'all';
+    sourceRadios.forEach((radio) => {
+      if (radio.checked) filter = radio.value;
+    });
+    // Fetch from Audius if allowed
+    if (filter === 'all' || filter === 'audius') {
+      try {
+        const resAudius = await fetch(
+          `https://api.audius.co/v1/tracks/search?query=${encodeURIComponent(
+            query
+          )}&app_name=holaPWA`
+        );
+        const dataAudius = await resAudius.json();
+        const audiusTracks = (dataAudius.data || [])
+          .slice(0, 6)
+          .map((t) => {
+            return {
+              source: 'audius',
+              title: t.title || '',
+              artist: (t.user && (t.user.name || t.user.handle)) || '',
+              cover:
+                (t.artwork &&
+                  (t.artwork['150x150'] || t.artwork['480x480'])) ||
+                '',
+              stream: t.stream && t.stream.url ? t.stream.url : '',
+            };
+          })
+          .filter((t) => t.stream);
+        tracks = tracks.concat(audiusTracks);
+      } catch (err) {
+        console.error('Audius API error:', err);
+      }
+    }
+    // Fetch from Piped (YouTube proxy) if allowed
+    if (filter === 'all' || filter === 'youtube') {
+      try {
+        const resYoutube = await fetch(
+          `https://pipedapi.kavin.rocks/api/v1/search?q=${encodeURIComponent(
+            query
+          )}&region=US`
+        );
+        const dataYoutube = await resYoutube.json();
+        const items = dataYoutube.items || dataYoutube;
+        const youtubeTracks = Array.isArray(items)
+          ? items.slice(0, 6).map((item) => {
+              const videoId = item.id || item.url?.split('v=')[1] || item.url || '';
+              return {
+                source: 'youtube',
+                title: item.title || '',
+                artist: item.uploader || '',
+                cover: item.thumbnail || '',
+                videoId: videoId,
+              };
+            })
+          : [];
+        tracks = tracks.concat(youtubeTracks);
+      } catch (err) {
+        console.error('Piped API error:', err);
+      }
+    }
+    // Save playlist for navigation
+    currentPlaylist = tracks;
+    // Render results
+    if (musicResults) {
+      musicResults.innerHTML = '';
+      if (!tracks.length) {
+        musicResults.innerHTML = '<p>No se encontraron resultados.</p>';
+      } else {
+        tracks.forEach((track, index) => {
+          const item = document.createElement('div');
+          item.className = 'music-item';
+          item.dataset.index = index;
+          const img = document.createElement('img');
+          img.src = track.cover || 'icons/icon-192.png';
+          const info = document.createElement('div');
+          info.className = 'music-info';
+          const titleDiv = document.createElement('div');
+          titleDiv.className = 'music-title';
+          titleDiv.textContent = track.title;
+          const artistDiv = document.createElement('div');
+          artistDiv.className = 'music-artist';
+          artistDiv.textContent = track.artist || track.source.toUpperCase();
+          info.appendChild(titleDiv);
+          info.appendChild(artistDiv);
+          item.appendChild(img);
+          item.appendChild(info);
+          item.addEventListener('click', () => {
+            currentTrackIndex = parseInt(item.dataset.index, 10);
+            playTrack(track);
+            playClickSound();
+          });
+          musicResults.appendChild(item);
+        });
+      }
+    }
+  }
+
+  // Play a selected track
+  async function playTrack(track) {
+    currentTrack = track;
+    // If currentTrackIndex is still -1, set it based on playlist
+    if (currentTrackIndex < 0 && Array.isArray(currentPlaylist)) {
+      currentTrackIndex = currentPlaylist.findIndex((t) => t === track);
+    }
+    if (musicPlayer) {
+      musicPlayer.style.display = 'flex';
+    }
+    if (coverEl) {
+      coverEl.src = track.cover || 'icons/icon-192.png';
+    }
+    if (titleEl) {
+      titleEl.textContent = track.title;
+    }
+    if (artistEl) {
+      artistEl.textContent = track.artist || '';
+    }
+    // Determine source and set audio
+    if (track.source === 'audius') {
+      audio.src = track.stream;
+      audio.play().catch(() => {});
+    } else if (track.source === 'youtube') {
+      try {
+        const res = await fetch(
+          `https://pipedapi.kavin.rocks/api/v1/streams/${track.videoId}`
+        );
+        const info = await res.json();
+        const audioStream = (info.audioStreams || []).find(
+          (s) => !s.videoOnly
+        );
+        if (audioStream && audioStream.url) {
+          audio.src = audioStream.url;
+          audio.play().catch(() => {});
+        }
+      } catch (err) {
+        console.error('Stream fetch error:', err);
+      }
+    }
+    // Update play button icon
+    if (playBtn) {
+      playBtn.textContent = '⏸';
+    }
+  }
+
+  // Play/pause toggle
+  if (playBtn) {
+    playBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play().catch(() => {});
+        playBtn.textContent = '⏸';
+      } else {
+        audio.pause();
+        playBtn.textContent = '▶';
+      }
+    });
+  }
+
+  // Update progress bar
+  if (audio && progressBar) {
+    audio.addEventListener('timeupdate', () => {
+      if (audio.duration) {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        progressBar.style.width = isNaN(progress) ? '0%' : progress + '%';
+      }
+    });
+  }
+  // Seek when clicking the progress bar
+  if (progressContainer) {
+    progressContainer.addEventListener('click', (e) => {
+      const rect = progressContainer.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      if (audio.duration) {
+        audio.currentTime = percent * audio.duration;
+      }
+    });
+  }
+  // Reset play button when track ends
+  audio.addEventListener('ended', () => {
+    if (playBtn) {
+      playBtn.textContent = '▶';
+    }
+  });
+
+  // Navigate to the next track in the playlist
+  function playNext() {
+    if (!currentPlaylist || currentPlaylist.length === 0) return;
+    currentTrackIndex = (currentTrackIndex + 1) % currentPlaylist.length;
+    const nextTrack = currentPlaylist[currentTrackIndex];
+    if (nextTrack) {
+      playTrack(nextTrack);
+    }
+  }
+  // Navigate to the previous track in the playlist
+  function playPrev() {
+    if (!currentPlaylist || currentPlaylist.length === 0) return;
+    currentTrackIndex = (currentTrackIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
+    const prevTrack = currentPlaylist[currentTrackIndex];
+    if (prevTrack) {
+      playTrack(prevTrack);
+    }
+  }
+  // Attach event listeners to navigation buttons
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      playNext();
+      playClickSound();
+    });
+  }
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      playPrev();
+      playClickSound();
+    });
+  }
+  // Volume control
+  if (volumeRange) {
+    // Load saved volume or default to 1
+    const savedVol = localStorage.getItem('musicVolume');
+    if (savedVol !== null) {
+      volumeRange.value = savedVol;
+      audio.volume = parseFloat(savedVol);
+    }
+    volumeRange.addEventListener('input', () => {
+      const vol = parseFloat(volumeRange.value);
+      audio.volume = vol;
+      localStorage.setItem('musicVolume', vol);
+    });
+  }
 });

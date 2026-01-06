@@ -41,10 +41,43 @@
         <button id="installBtn" class="install-btn">Instalar aplicación</button>
       </section>
 
-      <!-- Music section placeholder -->
+      <!-- Music section with search, results and player -->
       <section id="music" class="section">
         <h2>Música</h2>
-        <p>Explora tu biblioteca musical próximamente.</p>
+        <!-- Search bar for finding tracks -->
+        <div class="music-search">
+          <input type="text" id="music-query" placeholder="Buscar canción o artista…" />
+          <button id="music-search-btn">Buscar</button>
+        </div>
+        <!-- Optional filters for selecting data source -->
+        <div class="music-filters">
+          <label><input type="radio" name="music-source" value="all" checked /> Todos</label>
+          <label><input type="radio" name="music-source" value="audius" /> Audius</label>
+          <label><input type="radio" name="music-source" value="youtube" /> YouTube</label>
+        </div>
+        <!-- Container for displaying search results -->
+        <div id="music-results" class="music-results"></div>
+        <!-- Audio player displayed when a track is selected -->
+        <div id="music-player" class="music-player" style="display:none;">
+          <img id="player-cover" class="player-cover" src="" alt="Portada" />
+          <div class="player-info">
+            <div id="player-title" class="player-title">Título</div>
+            <div id="player-artist" class="player-artist">Artista</div>
+            <div class="player-progress" id="player-progress">
+              <div id="player-progress-bar" class="player-progress-bar"></div>
+            </div>
+          </div>
+          <!-- Playback controls: previous, play/pause, next -->
+          <div class="player-controls">
+            <button id="player-prev" class="player-btn" title="Anterior">⏮</button>
+            <button id="player-play" class="player-btn" title="Reproducir/Pausar">⏯</button>
+            <button id="player-next" class="player-btn" title="Siguiente">⏭</button>
+          </div>
+          <!-- Volume control -->
+          <div class="player-volume">
+            <input type="range" id="player-volume" min="0" max="1" step="0.05" value="1" />
+          </div>
+        </div>
       </section>
 
       <!-- Theme section with selectable light, dark and glass modes -->

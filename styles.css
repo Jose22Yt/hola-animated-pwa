@@ -394,3 +394,233 @@ body.no-animations * {
   animation: none !important;
   transition: none !important;
 }
+
+/*
+ * Music section styles
+ * Defines the layout for the search bar, results list and audio player.
+ */
+
+/* Layout container for the search bar */
+.music-search {
+  display: flex;
+  gap: 0.5rem;
+  width: 90%;
+  max-width: 600px;
+  margin: 1rem auto 0;
+}
+.music-search input {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 30px;
+  font-size: 1rem;
+  outline: none;
+}
+.music-search button {
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: 30px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  background: var(--secondary-color);
+  color: #000;
+  transition: transform 0.2s;
+}
+.music-search button:hover {
+  transform: translateY(-2px);
+}
+
+/* Filters for selecting music source */
+.music-filters {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0.5rem auto;
+  width: 90%;
+  max-width: 600px;
+  font-size: 0.9rem;
+  color: inherit;
+}
+.music-filters label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+.music-filters input[type="radio"] {
+  accent-color: var(--secondary-color);
+}
+
+/* Container for search results; scrollable when content overflows */
+.music-results {
+  width: 90%;
+  max-width: 600px;
+  margin: 1rem auto;
+  flex: 1;
+  overflow-y: auto;
+}
+.music-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 0.5rem;
+}
+.music-item:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+.music-item img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.music-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.music-title {
+  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.music-artist {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Audio player styling */
+.music-player {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+.player-cover {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.player-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.player-title {
+  font-weight: bold;
+  font-size: 1rem;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.player-artist {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.player-progress {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px;
+  margin-top: 0.4rem;
+  cursor: pointer;
+  overflow: hidden;
+}
+.player-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: var(--secondary-color);
+  border-radius: 2px;
+}
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.player-btn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.player-btn:hover {
+  transform: scale(1.1);
+}
+
+/* Volume slider styling */
+.player-volume {
+  margin-left: 1rem;
+  display: flex;
+  align-items: center;
+}
+.player-volume input[type="range"] {
+  width: 80px;
+  cursor: pointer;
+}
+
+/* Adjust colors for light theme in music section */
+body.theme-light .music-item {
+  background: rgba(0, 0, 0, 0.05);
+}
+body.theme-light .music-item:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+body.theme-light .music-player {
+  background: rgba(255, 255, 255, 0.7);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+body.theme-light .player-btn {
+  color: var(--primary-color);
+}
+body.theme-light .player-progress {
+  background: rgba(0, 0, 0, 0.1);
+}
+body.theme-light .player-progress-bar {
+  background: var(--primary-color);
+}
+
+/* Adjust colors for glass theme in music section */
+body.theme-glass .music-item {
+  background: rgba(255, 255, 255, 0.3);
+}
+body.theme-glass .music-item:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+body.theme-glass .music-player {
+  background: rgba(255, 255, 255, 0.5);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+body.theme-glass .player-btn {
+  color: var(--accent-color);
+}
+body.theme-glass .player-progress {
+  background: rgba(0, 0, 0, 0.1);
+}
+body.theme-glass .player-progress-bar {
+  background: var(--accent-color);
+}
