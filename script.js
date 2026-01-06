@@ -43,3 +43,36 @@ window.addEventListener('beforeinstallprompt', (e) => {
     });
   }
 });
+
+/*
+ * Navigation handling for the bottom navigation bar.
+ *
+ * The application consists of multiple <section> elements, each representing
+ * a different page (home, music, theme, settings, profile). A
+ * corresponding set of buttons in the bottom navigation bar controls
+ * which section is visible. When a nav item is clicked, the script
+ * removes the `active` class from all sections and nav items, then
+ * adds it to the selected ones. This ensures only one section is
+ * visible at a time, creating a simple single‑page app experience.
+ */
+
+// Attach click listeners after the DOM has loaded
+window.addEventListener('DOMContentLoaded', () => {
+  const navItems = document.querySelectorAll('.nav-item');
+  const sections = document.querySelectorAll('.section');
+
+  navItems.forEach((item) => {
+    item.addEventListener('click', () => {
+      const targetId = item.getAttribute('data-section');
+      // Update nav item active state
+      navItems.forEach((btn) => btn.classList.remove('active'));
+      item.classList.add('active');
+      // Update section visibility
+      sections.forEach((section) => section.classList.remove('active'));
+      const targetSection = document.getElementById(targetId);
+      if (targetSection) {
+        targetSection.classList.add('active');
+      }
+    });
+  });
+});
