@@ -1,0 +1,129 @@
+/*
+ * styles.css for Hola Animated PWA
+ *
+ * This stylesheet sets a vibrant gradient background that animates slowly
+ * over time. Text elements fade and bounce into view to grab the user's
+ * attention. A floating install button invites users to install the
+ * Progressive Web App on their device.
+ */
+
+/* Colour palette using CSS variables */
+:root {
+  --primary-color: #6200ea;
+  --secondary-color: #03dac5;
+  --accent-color: #ff0266;
+  --bg-gradient: linear-gradient(135deg, #6200ea, #ff0266, #03dac5);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: Arial, Helvetica, sans-serif;
+  overflow: hidden;
+}
+
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ffffff;
+  background: var(--bg-gradient);
+  background-size: 400% 400%;
+  animation: gradientAnimation 15s ease infinite;
+}
+
+/* Animate the gradient to create a subtle shifting effect */
+@keyframes gradientAnimation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Container for the app content */
+.app {
+  text-align: center;
+  animation: fadeIn 1.5s ease-out forwards;
+}
+
+/* Fade the container in from below */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Headline styling and bounce animation */
+.hero h1 {
+  font-size: 5rem;
+  font-weight: bold;
+  margin: 0;
+  animation: bounceIn 1s ease-out;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Subtitle slides up after the heading */
+.hero p {
+  font-size: 1.4rem;
+  margin-top: 1rem;
+  opacity: 0;
+  animation: slideUp 1s ease-out 0.5s forwards;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Install button styling */
+.install-btn {
+  margin-top: 2rem;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  color: var(--primary-color);
+  background-color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.install-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
+}
