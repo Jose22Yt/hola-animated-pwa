@@ -212,3 +212,78 @@ body {
   transform: translateY(-3px);
   box-shadow: 0 6px 8px rgba(0, 0, 0, 0.4);
 }
+
+/* Theme section styles */
+.theme-options {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.theme-btn {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.theme-btn:hover {
+  transform: translateY(-3px);
+}
+
+/* Specific styling for light and dark theme selection buttons */
+#theme-light.theme-btn {
+  background-color: #ffffff;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+#theme-dark.theme-btn {
+  background-color: #000000;
+  color: var(--secondary-color);
+  border: 1px solid var(--secondary-color);
+}
+
+/* Light theme overrides */
+body.theme-light {
+  --bg-gradient: #ffffff;
+  color: #000000;
+  background: #ffffff;
+}
+
+body.theme-light .bottom-nav {
+  background: rgba(255, 255, 255, 0.8);
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+body.theme-light .nav-item {
+  color: #000000;
+}
+
+body.theme-light .nav-item.active,
+body.theme-light .nav-item.active .nav-icon {
+  color: var(--secondary-color);
+}
+
+/* Dark theme overrides */
+body.theme-dark {
+  --bg-gradient: #000000;
+  color: #ffffff;
+  background: #000000;
+}
+
+body.theme-dark .bottom-nav {
+  background: rgba(0, 0, 0, 0.8);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+body.theme-dark .nav-item {
+  color: #ffffff;
+}
+
+body.theme-dark .nav-item.active,
+body.theme-dark .nav-item.active .nav-icon {
+  color: var(--secondary-color);
+}

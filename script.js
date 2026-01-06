@@ -75,4 +75,27 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // Theme selection handling
+  const lightBtn = document.getElementById('theme-light');
+  const darkBtn = document.getElementById('theme-dark');
+  // Apply saved theme preference
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'light') {
+    document.body.classList.add('theme-light');
+  } else if (savedTheme === 'dark') {
+    document.body.classList.add('theme-dark');
+  }
+  if (lightBtn && darkBtn) {
+    lightBtn.addEventListener('click', () => {
+      document.body.classList.remove('theme-dark');
+      document.body.classList.add('theme-light');
+      localStorage.setItem('theme', 'light');
+    });
+    darkBtn.addEventListener('click', () => {
+      document.body.classList.remove('theme-light');
+      document.body.classList.add('theme-dark');
+      localStorage.setItem('theme', 'dark');
+    });
+  }
 });
