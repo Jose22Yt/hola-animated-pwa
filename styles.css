@@ -522,16 +522,23 @@ body.no-animations * {
 }
 
 /* Controls for expanding/collapsing and closing the player */
+/* Position and styling for the player expand/collapse and close buttons */
 .player-close,
 .player-toggle {
-  position: absolute;
-  top: 4px;
-  background: none;
-  border: none;
-  color: inherit;
-  font-size: 1.2rem;
-  cursor: pointer;
-}
+      position: absolute;
+      top: 4px;
+      right: auto;
+      background: none;
+      border: none;
+      /* Set a default color and styling so these buttons remain visible on any background */
+      color: #ffffff;
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 0.2rem;
+      line-height: 1;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 50%;
+    }
 /* Position toggle to the left of close button */
 .player-toggle {
   right: 36px;
@@ -674,3 +681,20 @@ body.theme-glass .player-progress {
 body.theme-glass .player-progress-bar {
   background: var(--accent-color);
 }
+
+    /* Theme-specific overrides for the music player's toggle and close buttons */
+    body.theme-light .player-close,
+    body.theme-light .player-toggle {
+      color: var(--primary-color);
+      background: rgba(255, 255, 255, 0.8);
+    }
+    body.theme-dark .player-close,
+    body.theme-dark .player-toggle {
+      color: var(--secondary-color);
+      background: rgba(0, 0, 0, 0.4);
+    }
+    body.theme-glass .player-close,
+    body.theme-glass .player-toggle {
+      color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.6);
+    }
