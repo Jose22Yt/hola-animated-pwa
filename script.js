@@ -254,6 +254,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const prevBtn = document.getElementById('player-prev');
   const nextBtn = document.getElementById('player-next');
   const volumeRange = document.getElementById('player-volume');
+  const playerToggleBtn = document.getElementById('player-toggle');
+  const playerCloseBtn = document.getElementById('player-close');
+  let isPlayerExpanded = false;
   // Radio buttons to filter music source
   const sourceRadios = document.querySelectorAll('input[name="music-source"]');
   // Create a single Audio element for playback
@@ -509,6 +512,37 @@ window.addEventListener('DOMContentLoaded', () => {
       const vol = parseFloat(volumeRange.value);
       audio.volume = vol;
       localStorage.setItem('musicVolume', vol);
+    });
+  }
+
+  // Toggle expand/collapse of the music player
+  if (playerToggleBtn && musicPlayer) {
+    playerToggleBtn.addEventListener('click', () => {
+      isPlayerExpanded = !isPlayerExpanded;
+      if (isPlayerExpanded) {
+        musicPlayer.classList.add('expanded');
+        playerToggleBtn.textContent = '▼';
+        playerToggleBtn.title = 'Minimizar';
+      } else {
+        musicPlayer.classList.remove('expanded');
+        playerToggleBtn.textContent = '▲';
+        playerToggleBtn.title = 'Expandir';
+      }
+    });
+  }
+
+  // Close the music player and stop playback
+  if (playerCloseBtn && musicPlayer) {
+    playerCloseBtn.addEventListener('click', () => {
+      audio.pause();
+      audio.currentTime = 0;
+      musicPlayer.style.display = 'none';
+      musicPlayer.classList.remove('expanded');
+      isPlayerExpanded = false;
+      if (playerToggleBtn) {
+        playerToggleBtn.textContent = '▲';
+        playerToggleBtn.title = 'Expandir';
+      }
     });
   }
 });

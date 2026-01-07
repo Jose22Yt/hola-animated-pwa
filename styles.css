@@ -469,7 +469,8 @@ body.no-animations * {
   background: rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: background 0.2s;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 .music-item:hover {
   background: rgba(0, 0, 0, 0.5);
@@ -479,6 +480,11 @@ body.no-animations * {
   height: 48px;
   border-radius: 8px;
   object-fit: cover;
+}
+
+/* Remove the separator line from the last item in the results list */
+.music-item:last-child {
+  border-bottom: none;
 }
 .music-info {
   flex: 1;
@@ -512,6 +518,50 @@ body.no-animations * {
   align-items: center;
   gap: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+/* Controls for expanding/collapsing and closing the player */
+.player-close,
+.player-toggle {
+  position: absolute;
+  top: 4px;
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+/* Position toggle to the left of close button */
+.player-toggle {
+  right: 36px;
+}
+.player-close {
+  right: 8px;
+}
+
+/* Expanded player layout */
+.music-player.expanded {
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.music-player.expanded .player-cover {
+  width: 128px;
+  height: 128px;
+}
+.music-player.expanded .player-info {
+  align-items: center;
+  text-align: center;
+}
+.music-player.expanded .player-title {
+  font-size: 1.2rem;
+}
+.music-player.expanded .player-controls {
+  font-size: 2rem;
+}
+.music-player.expanded .player-volume input[type="range"] {
+  width: 120px;
 }
 .player-cover {
   width: 64px;
