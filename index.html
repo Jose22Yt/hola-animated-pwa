@@ -12,7 +12,14 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!--
+      Prevent pinch‑zoom to give the app a native feel on mobile.  The
+      `user‑scalable=no` and `maximum-scale=1.0` settings disable
+      browser zooming so the layout always fits within the screen
+      boundaries.  `viewport-fit=cover` allows the PWA to extend into
+      the device's safe areas on iOS.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#6200ea" />
     <title>Hola PWA</title>
     <!-- Manifest for PWA configuration -->
@@ -57,42 +64,128 @@
         </div>
         <!-- Container for displaying search results -->
         <div id="music-results" class="music-results"></div>
-        <!-- Audio player displayed when a track is selected -->
-        <div id="music-player" class="music-player" style="display:none;">
-          <!-- Mini player header: expand/collapse button, mini progress bar, close button -->
-          <div class="mini-player-header">
-            <button id="player-toggle" class="player-toggle" title="Expandir">▲</button>
-            <div id="mini-progress" class="mini-progress">
-              <div id="mini-progress-bar" class="mini-progress-bar"></div>
-            </div>
-            <button id="player-close" class="player-close" title="Cerrar">×</button>
+        <!-- Mini and full players are defined outside of the results list.  The mini
+             player appears just above the bottom navigation bar once a song is
+             selected, and the full player overlays the entire screen when
+             expanded. -->
+
+        <!-- Mini player (hidden by default) -->
+        <div id="miniPlayer" class="mini-player hidden">
+          <div class="mini-progress">
+            <div id="miniProgressBar" class="mini-progress-bar"></div>
           </div>
-          <!-- Mini player body: cover art, track info and controls -->
-          <div class="mini-player-body">
-            <img id="player-cover" class="player-cover" src="" alt="Portada" />
-            <div class="player-info">
-              <div id="player-title" class="player-title">Título</div>
-              <div id="player-artist" class="player-artist">Artista</div>
+          <div class="mini-row">
+            <button id="miniExpand" class="mini-icon" aria-label="Expandir">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25L12 15.75L4.5 8.25" />
+              </svg>
+            </button>
+            <div class="mini-meta">
+              <div id="miniTitle" class="mini-title">Título</div>
+              <div id="miniArtist" class="mini-artist">Artista</div>
             </div>
-            <div class="player-controls">
-              <button id="player-shuffle" class="player-btn" title="Aleatorio">🔀</button>
-              <button id="player-prev" class="player-btn" title="Anterior">⏮</button>
-              <button id="player-play" class="player-btn" title="Reproducir/Pausar">⏯</button>
-              <button id="player-next" class="player-btn" title="Siguiente">⏭</button>
-              <button id="player-repeat" class="player-btn" title="Repetir">🔁</button>
+            <button id="miniClose" class="mini-icon" aria-label="Cerrar">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6L18 18" />
+              </svg>
+            </button>
+          </div>
+          <div class="mini-controls">
+            <button id="btnShuffle" class="ctrl small" aria-label="Aleatorio">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5M3 16.5L7.5 12M3 16.5H16.5M16.5 3L21 7.5M21 7.5L16.5 12M21 7.5L7.5 7.5" />
+              </svg>
+            </button>
+            <button id="btnPrev" class="ctrl" aria-label="Anterior">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 16.8115C21 17.6753 20.0668 18.2169 19.3169 17.7883L12.2094 13.7269C11.4536 13.295 11.4536 12.2052 12.2094 11.7733L19.3169 7.7119C20.0668 7.28334 21 7.82487 21 8.68867V16.8115Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 16.8115C11.25 17.6753 10.3168 18.2169 9.56685 17.7883L2.45936 13.7269C1.70357 13.295 1.70357 12.2052 2.45936 11.7733L9.56685 7.7119C10.3168 7.28334 11.25 7.82487 11.25 8.68867V16.8115Z" />
+              </svg>
+            </button>
+            <button id="btnPlay" class="ctrl play" aria-label="Reproducir/Pausar">
+              <svg id="playIcon" class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.65273C5.25 4.79705 6.1674 4.25462 6.91716 4.66698L18.4577 11.0143C19.2349 11.4417 19.2349 12.5584 18.4577 12.9858L6.91716 19.3331C6.1674 19.7455 5.25 19.203 5.25 18.8347V5.65273Z" />
+              </svg>
+              <svg id="pauseIcon" class="icon hidden" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25V18.75M8.25 5.25V18.75" />
+              </svg>
+            </button>
+            <button id="btnNext" class="ctrl" aria-label="Siguiente">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8.68867C3 7.82487 3.93317 7.28334 4.68316 7.7119L11.7906 11.7733C12.5464 12.2052 12.5464 13.295 11.7906 13.7269L4.68316 17.7883C3.93317 18.2169 3 17.6753 3 16.8115V8.68867Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12.75 8.68867C12.75 7.82487 13.6832 7.28334 14.4332 7.7119L21.5406 11.7733C22.2964 12.2052 22.2964 13.295 21.5406 13.7269L14.4332 17.7883C13.6832 18.2169 12.75 17.6753 12.75 16.8115V8.68867Z" />
+              </svg>
+            </button>
+            <button id="btnRepeat" class="ctrl small" aria-label="Repetir">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.0228 9.34841H21.0154M2.98413 19.6444V14.6517M2.98413 14.6517H7.97677M2.98413 14.6517L6.16502 17.8347C7.15555 18.8271 8.41261 19.58 9.86436 19.969C14.2654 21.1483 18.7892 18.5364 19.9685 14.1353M4.03073 9.86484C5.21 5.46374 9.73377 2.85194 14.1349 4.03121C15.5866 4.4202 16.8437 5.17312 17.8342 6.1655L21.0154 9.34663M21.0154 4.3558V9.34663" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Full player (hidden by default) -->
+        <div id="fullPlayer" class="full-player hidden">
+          <div class="full-top">
+            <button id="fullMinimize" class="full-icon" aria-label="Minimizar">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25L12 15.75L4.5 8.25" />
+              </svg>
+            </button>
+            <div class="full-titlebar">REPRODUCIENDO</div>
+            <button id="fullClose" class="full-icon" aria-label="Cerrar">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6L18 18" />
+              </svg>
+            </button>
+          </div>
+          <div class="full-art">
+            <img id="fullCover" alt="Portada" />
+          </div>
+          <div class="full-info">
+            <div id="fullTrack" class="full-track">Título</div>
+            <div id="fullArtist" class="full-by">Artista</div>
+          </div>
+          <div class="full-progress">
+            <div class="bar">
+              <div id="fullProgressBar" class="bar-fill"></div>
+            </div>
+            <div class="times">
+              <span id="fullCurrent">0:00</span>
+              <span id="fullTotal">0:00</span>
             </div>
           </div>
-          <!-- Full progress bar with time indicators (shown in expanded mode) -->
-          <div class="player-progress-wrapper">
-            <span id="player-current-time" class="player-time">0:00</span>
-            <div class="player-progress" id="player-progress">
-              <div id="player-progress-bar" class="player-progress-bar"></div>
-            </div>
-            <span id="player-duration" class="player-time">0:00</span>
-          </div>
-          <!-- Volume control (shown in expanded mode) -->
-          <div class="player-volume">
-            <input type="range" id="player-volume" min="0" max="1" step="0.05" value="1" />
+          <div class="full-controls">
+            <button id="fShuffle" class="ctrl small" aria-label="Aleatorio">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5M3 16.5L7.5 12M3 16.5H16.5M16.5 3L21 7.5M21 7.5L16.5 12M21 7.5L7.5 7.5" />
+              </svg>
+            </button>
+            <button id="fPrev" class="ctrl" aria-label="Anterior">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 16.8115C21 17.6753 20.0668 18.2169 19.3169 17.7883L12.2094 13.7269C11.4536 13.295 11.4536 12.2052 12.2094 11.7733L19.3169 7.7119C20.0668 7.28334 21 7.82487 21 8.68867V16.8115Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 16.8115C11.25 17.6753 10.3168 18.2169 9.56685 17.7883L2.45936 13.7269C1.70357 13.295 1.70357 12.2052 2.45936 11.7733L9.56685 7.7119C10.3168 7.28334 11.25 7.82487 11.25 8.68867V16.8115Z" />
+              </svg>
+            </button>
+            <button id="fPlay" class="ctrl play" aria-label="Reproducir/Pausar">
+              <svg id="fPlayIcon" class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.65273C5.25 4.79705 6.1674 4.25462 6.91716 4.66698L18.4577 11.0143C19.2349 11.4417 19.2349 12.5584 18.4577 12.9858L6.91716 19.3331C6.1674 19.7455 5.25 19.203 5.25 18.8347V5.65273Z" />
+              </svg>
+              <svg id="fPauseIcon" class="icon hidden" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25V18.75M8.25 5.25V18.75" />
+              </svg>
+            </button>
+            <button id="fNext" class="ctrl" aria-label="Siguiente">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8.68867C3 7.82487 3.93317 7.28334 4.68316 7.7119L11.7906 11.7733C12.5464 12.2052 12.5464 13.295 11.7906 13.7269L4.68316 17.7883C3.93317 18.2169 3 17.6753 3 16.8115V8.68867Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12.75 8.68867C12.75 7.82487 13.6832 7.28334 14.4332 7.7119L21.5406 11.7733C22.2964 12.2052 22.2964 13.295 21.5406 13.7269L14.4332 17.7883C13.6832 18.2169 12.75 17.6753 12.75 16.8115V8.68867Z" />
+              </svg>
+            </button>
+            <button id="fRepeat" class="ctrl small" aria-label="Repetir">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.0228 9.34841H21.0154M2.98413 19.6444V14.6517M2.98413 14.6517H7.97677M2.98413 14.6517L6.16502 17.8347C7.15555 18.8271 8.41261 19.58 9.86436 19.969C14.2654 21.1483 18.7892 18.5364 19.9685 14.1353M4.03073 9.86484C5.21 5.46374 9.73377 2.85194 14.1349 4.03121C15.5866 4.4202 16.8437 5.17312 17.8342 6.1655L21.0154 9.34663M21.0154 4.3558V9.34663" />
+              </svg>
+            </button>
           </div>
         </div>
       </section>

@@ -1056,3 +1056,282 @@ body.theme-glass .player-progress-bar {
     .music-player.expanded .player-close {
       right: 1rem;
     }
+
+/* ====================================================================
+ * Revised player and layout styling (January 2026)
+ *
+ * These overrides implement a modern, mobile‑first music player that
+ * closely follows contemporary streaming apps.  The mini player sits
+ * just above the bottom navigation bar and contains a slim progress
+ * indicator, track metadata and concise controls.  When expanded, the
+ * player becomes a full‑screen overlay with large cover art, time
+ * indicators and comfortable buttons.  The entire application adopts
+ * a glass effect with blurred backgrounds and soft borders.
+ */
+
+/* Define a custom variable for the height of the floating navigation
+   bar.  This value is used to offset the mini player from the bottom
+   of the screen. */
+:root {
+  --nav-height: 4.5rem;
+}
+
+/* Ensure the page does not scroll horizontally and fits on mobile
+   screens. */
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Give each section a glassy card background with rounded edges */
+.section {
+  margin: 0.6rem;
+  padding: 1rem;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+body.theme-light .section {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+body.theme-dark .section {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+body.theme-glass .section {
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Adjust the bottom padding of sections to make space for the nav
+   bar and mini player */
+.section {
+  padding-bottom: calc(var(--nav-height) + 5rem);
+}
+
+/* Mini player container */
+.mini-player {
+  position: fixed;
+  bottom: calc(var(--nav-height) + 0.75rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(94vw, 480px);
+  border-radius: 26px;
+  backdrop-filter: blur(18px);
+  background: rgba(20, 20, 22, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  padding: 10px 12px 12px;
+  z-index: 70;
+  flex-direction: column;
+  /* The mini player is hidden via the `.hidden` utility class.  Keep
+     `display` undefined here so that removing `.hidden` will make it
+     visible with `display: flex`. */
+  color: #ffffff;
+}
+body.theme-light .mini-player {
+  background: rgba(255, 255, 255, 0.9);
+  color: #000000;
+}
+body.theme-dark .mini-player {
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffffff;
+}
+body.theme-glass .mini-player {
+  background: rgba(255, 255, 255, 0.5);
+  color: #000000;
+}
+
+.mini-player .mini-progress {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.mini-player .mini-progress-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--primary-color, #7a5cff), var(--accent-color, #ff8a00));
+}
+.mini-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.mini-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+}
+.mini-meta {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+.mini-title {
+  font-weight: 700;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini-artist {
+  font-size: 12px;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mini-controls {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 22px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+.ctrl {
+  width: 44px;
+  height: 44px;
+  border-radius: 99px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  cursor: pointer;
+}
+.ctrl.small {
+  font-size: 18px;
+  opacity: 0.9;
+}
+.ctrl.play {
+  width: 62px;
+  height: 62px;
+  background: rgba(0, 0, 0, 0.30);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  font-size: 26px;
+}
+
+/* Icons inside buttons share the same size for consistency */
+.ctrl .icon,
+.mini-icon .icon,
+.full-icon .icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Hide/show helper */
+.hidden {
+  display: none !important;
+}
+
+/* Full player overlay */
+.full-player {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  backdrop-filter: blur(20px);
+  background: rgba(0, 0, 0, 0.85);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 16px 20px;
+  gap: 14px;
+}
+body.theme-light .full-player {
+  background: rgba(255, 255, 255, 0.9);
+  color: #000000;
+}
+body.theme-glass .full-player {
+  background: rgba(255, 255, 255, 0.6);
+  color: #000000;
+}
+
+.full-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.full-titlebar {
+  color: rgba(255, 255, 255, 0.8);
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  font-size: 12px;
+}
+.full-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.full-art img {
+  width: min(78vw, 360px);
+  aspect-ratio: 1 / 1;
+  border-radius: 26px;
+  object-fit: cover;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  margin: 0 auto;
+}
+.full-info {
+  text-align: center;
+}
+.full-track {
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 800;
+}
+.full-by {
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 2px;
+}
+.full-progress .bar {
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+.full-progress .bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--primary-color, #7a5cff), var(--accent-color, #ff8a00));
+}
+.full-progress .times {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 12px;
+}
+.full-controls {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}

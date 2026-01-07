@@ -244,34 +244,314 @@ window.addEventListener('DOMContentLoaded', () => {
   const musicQuery = document.getElementById('music-query');
   const musicBtn = document.getElementById('music-search-btn');
   const musicResults = document.getElementById('music-results');
-  const musicPlayer = document.getElementById('music-player');
-  const coverEl = document.getElementById('player-cover');
-  const titleEl = document.getElementById('player-title');
-  const artistEl = document.getElementById('player-artist');
-  const progressBar = document.getElementById('player-progress-bar');
-  const progressContainer = document.getElementById('player-progress');
-  const miniProgressBar = document.getElementById('mini-progress-bar');
-  const playerCurrentTimeEl = document.getElementById('player-current-time');
-  const playerDurationEl = document.getElementById('player-duration');
-  const playBtn = document.getElementById('player-play');
-  const prevBtn = document.getElementById('player-prev');
-  const nextBtn = document.getElementById('player-next');
-  const volumeRange = document.getElementById('player-volume');
-  const playerToggleBtn = document.getElementById('player-toggle');
-  const playerCloseBtn = document.getElementById('player-close');
-  let isPlayerExpanded = false;
-  // Shuffle and repeat state flags
-  const shuffleBtn = document.getElementById('player-shuffle');
-  const repeatBtn = document.getElementById('player-repeat');
+  /*
+   * Reproductor avanzado
+   *
+   * La interfaz consta de un mini‑player flotante y un reproductor a
+   * pantalla completa. Los dos comparten el mismo audio y estado,
+   * por lo que aquí se referencian sus elementos y se gestiona la
+   * interacción para expandir/minimizar, reproducir/pausar, avanzar,
+   * retroceder, aleatorio y repetición. Además se actualizan las
+   * barras de progreso y los tiempos.
+   */
+
+  // Mini player elements
+  const miniPlayer = document.getElementById('miniPlayer');
+  const miniExpandBtn = document.getElementById('miniExpand');
+  const miniCloseBtn = document.getElementById('miniClose');
+  const miniProgressBar = document.getElementById('miniProgressBar');
+  const miniTitle = document.getElementById('miniTitle');
+  const miniArtist = document.getElementById('miniArtist');
+  const btnShuffle = document.getElementById('btnShuffle');
+  const btnPrev = document.getElementById('btnPrev');
+  const btnPlay = document.getElementById('btnPlay');
+  const btnNext = document.getElementById('btnNext');
+  const btnRepeat = document.getElementById('btnRepeat');
+  const playIcon = document.getElementById('playIcon');
+  const pauseIcon = document.getElementById('pauseIcon');
+
+  // Full player elements
+  const fullPlayer = document.getElementById('fullPlayer');
+  const fullMinimizeBtn = document.getElementById('fullMinimize');
+  const fullCloseBtn = document.getElementById('fullClose');
+  const fullProgressBar = document.getElementById('fullProgressBar');
+  const fullCurrent = document.getElementById('fullCurrent');
+  const fullTotal = document.getElementById('fullTotal');
+  const fullTrack = document.getElementById('fullTrack');
+  const fullArtist = document.getElementById('fullArtist');
+  const fullCover = document.getElementById('fullCover');
+  const fShuffle = document.getElementById('fShuffle');
+  const fPrev = document.getElementById('fPrev');
+  const fPlay = document.getElementById('fPlay');
+  const fNext = document.getElementById('fNext');
+  const fRepeat = document.getElementById('fRepeat');
+  const fPlayIcon = document.getElementById('fPlayIcon');
+  const fPauseIcon = document.getElementById('fPauseIcon');
+
+  // Player state
   let isShuffle = false;
   let isRepeat = false;
-  // Radio buttons to filter music source
-  const sourceRadios = document.querySelectorAll('input[name="music-source"]');
-  // Create a single Audio element for playback
+
+  // Audio element for playback
   const audio = new Audio();
   let currentTrack = null;
   let currentPlaylist = [];
   let currentTrackIndex = -1;
+
+  // Helper: format seconds to mm:ss
+  function formatTime(sec) {
+    const s = Math.max(0, Math.floor(sec || 0));
+    const m = Math.floor(s / 60);
+    const r = String(s % 60).padStart(2, '0');
+    return `${m}:${r}`;
+  }
+
+  // Show mini player and hide full player
+  function showMini() {
+    miniPlayer.classList.remove('hidden');
+    fullPlayer.classList.add('hidden');
+    const nav = document.querySelector('.bottom-nav');
+    if (nav) nav.classList.remove('hidden');
+  }
+
+  // Show full player and hide mini player
+  function showFull() {
+    fullPlayer.classList.remove('hidden');
+    miniPlayer.classList.add('hidden');
+    const nav = document.querySelector('.bottom-nav');
+    if (nav) nav.classList.add('hidden');
+  }
+
+  // Toggle play/pause state and update icons
+  function togglePlay() {
+    if (audio.paused) {
+      audio.play();
+    } else {
+      audio.pause();
+    }
+  }
+
+  // Update play/pause icons on both players
+  function updatePlayIcons() {
+    if (audio.paused) {
+      playIcon.classList.remove('hidden');
+      pauseIcon.classList.add('hidden');
+      fPlayIcon.classList.remove('hidden');
+      fPauseIcon.classList.add('hidden');
+    } else {
+      playIcon.classList.add('hidden');
+      pauseIcon.classList.remove('hidden');
+      fPlayIcon.classList.add('hidden');
+      fPauseIcon.classList.remove('hidden');
+    }
+  }
+
+  // Update progress bars and time labels based on current time
+  function updateProgress() {
+    if (!audio.duration) return;
+    const percentage = (audio.currentTime / audio.duration) * 100;
+    miniProgressBar.style.width = `${percentage}%`;
+    fullProgressBar.style.width = `${percentage}%`;
+    fullCurrent.textContent = formatTime(audio.currentTime);
+    fullTotal.textContent = formatTime(audio.duration);
+  }
+
+  // Play a specific track
+  async function playTrack(track) {
+    currentTrack = track;
+    // Determine index in playlist
+    if (currentTrackIndex < 0) {
+      currentTrackIndex = currentPlaylist.findIndex((t) => t === track);
+    }
+    // Stop current audio
+    audio.pause();
+    audio.src = '';
+    // If YouTube track: fetch audio stream from Piped API
+    if (track.source === 'youtube') {
+      try {
+        const res = await fetch(`https://pipedapi.kavin.rocks/api/v1/streams/${encodeURIComponent(track.videoId)}`);
+        const data = await res.json();
+        const audioStream = (data?.audioStreams || [])[0];
+        if (audioStream && audioStream.url) {
+          audio.src = audioStream.url;
+        } else {
+          console.error('No se encontró stream de audio');
+          return;
+        }
+      } catch (err) {
+        console.error('Error al cargar audio de YouTube:', err);
+        return;
+      }
+    } else {
+      audio.src = track.stream;
+    }
+    // Update UI titles and cover
+    miniTitle.textContent = track.title || 'Sin título';
+    miniArtist.textContent = track.artist || '';
+    fullTrack.textContent = track.title || 'Sin título';
+    fullArtist.textContent = track.artist || '';
+    if (track.cover) {
+      fullCover.src = track.cover;
+    } else {
+      fullCover.src = 'icons/icon-512.png';
+    }
+    // Play the track
+    await audio.play().catch((e) => console.error('Reproducción fallida:', e));
+    // Show mini player
+    showMini();
+    updatePlayIcons();
+  }
+
+  // Play next track
+  function playNext() {
+    if (!currentPlaylist.length) return;
+    if (isShuffle) {
+      currentTrackIndex = Math.floor(Math.random() * currentPlaylist.length);
+    } else {
+      currentTrackIndex = (currentTrackIndex + 1) % currentPlaylist.length;
+    }
+    playTrack(currentPlaylist[currentTrackIndex]);
+  }
+
+  // Play previous track
+  function playPrev() {
+    if (!currentPlaylist.length) return;
+    if (isShuffle) {
+      currentTrackIndex = Math.floor(Math.random() * currentPlaylist.length);
+    } else {
+      currentTrackIndex = (currentTrackIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
+    }
+    playTrack(currentPlaylist[currentTrackIndex]);
+  }
+
+  // Toggle shuffle state
+  function toggleShuffle() {
+    isShuffle = !isShuffle;
+    // Toggle active class on both buttons
+    btnShuffle.classList.toggle('active', isShuffle);
+    fShuffle.classList.toggle('active', isShuffle);
+  }
+
+  // Toggle repeat state
+  function toggleRepeat() {
+    isRepeat = !isRepeat;
+    btnRepeat.classList.toggle('active', isRepeat);
+    fRepeat.classList.toggle('active', isRepeat);
+  }
+
+  // Audio events
+  audio.addEventListener('play', updatePlayIcons);
+  audio.addEventListener('pause', updatePlayIcons);
+  audio.addEventListener('timeupdate', () => {
+    updateProgress();
+    // Auto next track when finished
+    if (audio.currentTime >= audio.duration - 0.3 && audio.duration) {
+      if (isRepeat) {
+        // Restart same track
+        audio.currentTime = 0;
+        audio.play();
+      } else {
+        playNext();
+      }
+    }
+  });
+
+  // Bind controls for mini and full players
+  btnPlay.addEventListener('click', () => {
+    togglePlay();
+    playClickSound();
+  });
+  fPlay.addEventListener('click', () => {
+    togglePlay();
+    playClickSound();
+  });
+  btnPrev.addEventListener('click', () => {
+    playPrev();
+    playClickSound();
+  });
+  fPrev.addEventListener('click', () => {
+    playPrev();
+    playClickSound();
+  });
+  btnNext.addEventListener('click', () => {
+    playNext();
+    playClickSound();
+  });
+  fNext.addEventListener('click', () => {
+    playNext();
+    playClickSound();
+  });
+  btnShuffle.addEventListener('click', () => {
+    toggleShuffle();
+    playClickSound();
+  });
+  fShuffle.addEventListener('click', () => {
+    toggleShuffle();
+    playClickSound();
+  });
+  btnRepeat.addEventListener('click', () => {
+    toggleRepeat();
+    playClickSound();
+  });
+  fRepeat.addEventListener('click', () => {
+    toggleRepeat();
+    playClickSound();
+  });
+
+  // Expand/collapse and close actions
+  miniExpandBtn.addEventListener('click', () => {
+    showFull();
+    playClickSound();
+  });
+  fullMinimizeBtn.addEventListener('click', () => {
+    showMini();
+    playClickSound();
+  });
+  // Close completely: stop audio and hide players
+  miniCloseBtn.addEventListener('click', () => {
+    audio.pause();
+    audio.currentTime = 0;
+    miniPlayer.classList.add('hidden');
+    fullPlayer.classList.add('hidden');
+    const nav = document.querySelector('.bottom-nav');
+    if (nav) nav.classList.remove('hidden');
+    playClickSound();
+  });
+  fullCloseBtn.addEventListener('click', () => {
+    audio.pause();
+    audio.currentTime = 0;
+    miniPlayer.classList.add('hidden');
+    fullPlayer.classList.add('hidden');
+    const nav = document.querySelector('.bottom-nav');
+    if (nav) nav.classList.remove('hidden');
+    playClickSound();
+  });
+
+  // Allow seeking by tapping on the progress bars
+  // Mini progress bar (wrapper is the parent of the bar)
+  const miniProgressWrapper = miniProgressBar ? miniProgressBar.parentElement : null;
+  if (miniProgressWrapper) {
+    miniProgressWrapper.addEventListener('click', (e) => {
+      const rect = miniProgressWrapper.getBoundingClientRect();
+      const ratio = (e.clientX - rect.left) / rect.width;
+      if (audio.duration) {
+        audio.currentTime = ratio * audio.duration;
+      }
+    });
+  }
+  // Full progress bar wrapper
+  const fullBarWrapper = fullPlayer.querySelector('.bar');
+  if (fullBarWrapper) {
+    fullBarWrapper.addEventListener('click', (e) => {
+      const rect = fullBarWrapper.getBoundingClientRect();
+      const ratio = (e.clientX - rect.left) / rect.width;
+      if (audio.duration) {
+        audio.currentTime = ratio * audio.duration;
+      }
+    });
+  }
+  // Radio buttons to filter music source
+  const sourceRadios = document.querySelectorAll('input[name="music-source"]');
 
   // Search button handler
   if (musicBtn && musicQuery) {
@@ -392,254 +672,13 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Play a selected track
-  async function playTrack(track) {
-    currentTrack = track;
-    // If currentTrackIndex is still -1, set it based on playlist
-    if (currentTrackIndex < 0 && Array.isArray(currentPlaylist)) {
-      currentTrackIndex = currentPlaylist.findIndex((t) => t === track);
-    }
-    if (musicPlayer) {
-      musicPlayer.style.display = 'flex';
-    }
-    if (coverEl) {
-      coverEl.src = track.cover || 'icons/icon-192.png';
-    }
-    if (titleEl) {
-      titleEl.textContent = track.title;
-    }
-    if (artistEl) {
-      artistEl.textContent = track.artist || '';
-    }
-    // Determine source and set audio
-    if (track.source === 'audius') {
-      audio.src = track.stream;
-      audio.play().catch(() => {});
-    } else if (track.source === 'youtube') {
-      try {
-        const res = await fetch(
-          `https://pipedapi.kavin.rocks/api/v1/streams/${track.videoId}`
-        );
-        const info = await res.json();
-        const audioStream = (info.audioStreams || []).find(
-          (s) => !s.videoOnly
-        );
-        if (audioStream && audioStream.url) {
-          audio.src = audioStream.url;
-          audio.play().catch(() => {});
-        }
-      } catch (err) {
-        console.error('Stream fetch error:', err);
-      }
-    }
-    // Update play button icon
-    if (playBtn) {
-      playBtn.textContent = '⏸';
-    }
-  }
+  /* La función playTrack antigua se ha eliminado en favor de la nueva
+     implementación de reproductor avanzado definida al principio de esta
+     sección. */
 
-  // Play/pause toggle
-  if (playBtn) {
-    playBtn.addEventListener('click', () => {
-      if (audio.paused) {
-        audio.play().catch(() => {});
-        playBtn.textContent = '⏸';
-      } else {
-        audio.pause();
-        playBtn.textContent = '▶';
-      }
-    });
-  }
-
-  // Helper to format seconds into mm:ss
-  function formatTime(seconds) {
-    if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return m + ':' + (s < 10 ? '0' + s : s);
-  }
-
-  // Update progress bars and time labels
-  if (audio) {
-    audio.addEventListener('timeupdate', () => {
-      if (audio.duration) {
-        const progress = (audio.currentTime / audio.duration) * 100;
-        if (progressBar) {
-          progressBar.style.width = isNaN(progress) ? '0%' : progress + '%';
-        }
-        if (miniProgressBar) {
-          miniProgressBar.style.width = isNaN(progress) ? '0%' : progress + '%';
-        }
-      }
-      if (playerCurrentTimeEl) {
-        playerCurrentTimeEl.textContent = formatTime(audio.currentTime);
-      }
-      if (playerDurationEl) {
-        playerDurationEl.textContent = formatTime(audio.duration);
-      }
-    });
-    // Ensure duration label updates once metadata is loaded
-    audio.addEventListener('loadedmetadata', () => {
-      if (playerDurationEl) {
-        playerDurationEl.textContent = formatTime(audio.duration);
-      }
-    });
-  }
-  // Seek when clicking the progress bar
-  if (progressContainer) {
-    progressContainer.addEventListener('click', (e) => {
-      const rect = progressContainer.getBoundingClientRect();
-      const percent = (e.clientX - rect.left) / rect.width;
-      if (audio.duration) {
-        audio.currentTime = percent * audio.duration;
-      }
-    });
-  }
-
-  // Seek when clicking the mini progress bar
-  const miniProgress = document.getElementById('mini-progress');
-  if (miniProgress) {
-    miniProgress.addEventListener('click', (e) => {
-      const rect = miniProgress.getBoundingClientRect();
-      const percent = (e.clientX - rect.left) / rect.width;
-      if (audio.duration) {
-        audio.currentTime = percent * audio.duration;
-      }
-    });
-  }
-  // Handle end of track: repeat or play next
-  audio.addEventListener('ended', () => {
-    if (isRepeat) {
-      // Restart current track
-      audio.currentTime = 0;
-      audio.play().catch(() => {});
-    } else {
-      // Advance to next track if available
-      if (currentPlaylist && currentPlaylist.length > 0) {
-        playNext();
-      }
-    }
-    if (playBtn) {
-      playBtn.textContent = '⏸';
-    }
-  });
-
-  // Navigate to the next track in the playlist
-  function playNext() {
-    if (!currentPlaylist || currentPlaylist.length === 0) return;
-    if (isShuffle) {
-      // pick a random track different from current
-      let nextIndex = currentTrackIndex;
-      if (currentPlaylist.length > 1) {
-        while (nextIndex === currentTrackIndex) {
-          nextIndex = Math.floor(Math.random() * currentPlaylist.length);
-        }
-      }
-      currentTrackIndex = nextIndex;
-    } else {
-      currentTrackIndex = (currentTrackIndex + 1) % currentPlaylist.length;
-    }
-    const nextTrack = currentPlaylist[currentTrackIndex];
-    if (nextTrack) {
-      playTrack(nextTrack);
-    }
-  }
-  // Navigate to the previous track in the playlist
-  function playPrev() {
-    if (!currentPlaylist || currentPlaylist.length === 0) return;
-    currentTrackIndex = (currentTrackIndex - 1 + currentPlaylist.length) % currentPlaylist.length;
-    const prevTrack = currentPlaylist[currentTrackIndex];
-    if (prevTrack) {
-      playTrack(prevTrack);
-    }
-  }
-  // Attach event listeners to navigation buttons
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      playNext();
-      playClickSound();
-    });
-  }
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      playPrev();
-      playClickSound();
-    });
-  }
-  // Volume control
-  if (volumeRange) {
-    // Load saved volume or default to 1
-    const savedVol = localStorage.getItem('musicVolume');
-    if (savedVol !== null) {
-      volumeRange.value = savedVol;
-      audio.volume = parseFloat(savedVol);
-    }
-    volumeRange.addEventListener('input', () => {
-      const vol = parseFloat(volumeRange.value);
-      audio.volume = vol;
-      localStorage.setItem('musicVolume', vol);
-    });
-  }
-
-  // Toggle shuffle and repeat
-  if (shuffleBtn) {
-    shuffleBtn.addEventListener('click', () => {
-      isShuffle = !isShuffle;
-      if (isShuffle) {
-        shuffleBtn.classList.add('active');
-      } else {
-        shuffleBtn.classList.remove('active');
-      }
-    });
-  }
-  if (repeatBtn) {
-    repeatBtn.addEventListener('click', () => {
-      isRepeat = !isRepeat;
-      if (isRepeat) {
-        repeatBtn.classList.add('active');
-      } else {
-        repeatBtn.classList.remove('active');
-      }
-    });
-  }
-
-  // Toggle expand/collapse of the music player
-  if (playerToggleBtn && musicPlayer) {
-    playerToggleBtn.addEventListener('click', () => {
-      isPlayerExpanded = !isPlayerExpanded;
-      const bottomNav = document.querySelector('.bottom-nav');
-      if (isPlayerExpanded) {
-        musicPlayer.classList.add('expanded');
-        playerToggleBtn.textContent = '▼';
-        playerToggleBtn.title = 'Minimizar';
-        // Hide the bottom navigation bar when expanded
-        if (bottomNav) bottomNav.style.display = 'none';
-      } else {
-        musicPlayer.classList.remove('expanded');
-        playerToggleBtn.textContent = '▲';
-        playerToggleBtn.title = 'Expandir';
-        // Show the bottom navigation bar again
-        if (bottomNav) bottomNav.style.display = 'flex';
-      }
-    });
-  }
-
-  // Close the music player and stop playback
-  if (playerCloseBtn && musicPlayer) {
-    playerCloseBtn.addEventListener('click', () => {
-      audio.pause();
-      audio.currentTime = 0;
-      musicPlayer.style.display = 'none';
-      musicPlayer.classList.remove('expanded');
-      isPlayerExpanded = false;
-      // Reset toggle button
-      if (playerToggleBtn) {
-        playerToggleBtn.textContent = '▲';
-        playerToggleBtn.title = 'Expandir';
-      }
-      // Show the bottom navigation bar again when closed
-      const bottomNav = document.querySelector('.bottom-nav');
-      if (bottomNav) bottomNav.style.display = 'flex';
-    });
-  }
+  // El control de reproducción, progreso y búsqueda se gestiona
+  // mediante los manejadores definidos en la sección del reproductor
+  // avanzado.  Esta implementación antigua se ha eliminado.
+  // La lógica de final de pista, navegación, volumen y toggles se gestiona
+  // mediante las funciones definidas en la nueva sección del reproductor.
 });
