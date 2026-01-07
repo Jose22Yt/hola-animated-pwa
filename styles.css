@@ -698,3 +698,361 @@ body.theme-glass .player-progress-bar {
       color: var(--accent-color);
       background: rgba(255, 255, 255, 0.6);
     }
+
+    /********************************************************************
+     * Responsive and mobile-first overrides
+     *
+     * The following rules are appended at the end of the stylesheet to
+     * override previous definitions. They focus on adapting the layout
+     * for small screens, creating a pill‑shaped bottom navigation bar,
+     * introducing a dot indicator for the active tab, and reworking the
+     * music player into a collapsed mini player and an expanded full‑screen
+     * overlay with time labels and additional controls.
+     ********************************************************************/
+
+    /* Constrain the application width to improve readability on mobile */
+    #app {
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+      position: relative;
+    }
+
+    /* Adjust spacing at the bottom of each section to accommodate the
+       floating navigation bar and the collapsed music player */
+    .section {
+      padding-bottom: 6rem;
+    }
+
+    /* Pill navigation bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0.6rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 1.2rem);
+      max-width: 480px;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(10px);
+      border-radius: 32px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0.4rem 0;
+      z-index: 60;
+    }
+    body.theme-light .bottom-nav {
+      background: rgba(255, 255, 255, 0.9);
+    }
+    body.theme-dark .bottom-nav {
+      background: rgba(0, 0, 0, 0.7);
+    }
+    body.theme-glass .bottom-nav {
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Navigation items */
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      color: inherit;
+      font-size: 0.75rem;
+      padding: 0.2rem 0;
+    }
+    .nav-item .nav-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--secondary-color);
+      margin-top: 2px;
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .nav-item.active .nav-dot {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .nav-item .nav-icon {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 0.1rem;
+    }
+    .nav-item:not(.active) .nav-icon,
+    .nav-item:not(.active) span {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .nav-item.active .nav-icon,
+    .nav-item.active span {
+      color: var(--secondary-color);
+    }
+    body.theme-light .nav-item:not(.active) .nav-icon,
+    body.theme-light .nav-item:not(.active) span {
+      color: rgba(0, 0, 0, 0.6);
+    }
+    body.theme-light .nav-item.active .nav-icon,
+    body.theme-light .nav-item.active span {
+      color: var(--primary-color);
+    }
+    body.theme-glass .nav-item.active .nav-icon,
+    body.theme-glass .nav-item.active span {
+      color: var(--accent-color);
+    }
+
+    /* Music player layout */
+    .music-player {
+      position: fixed;
+      bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 1.2rem);
+      max-width: 480px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      padding: 0.6rem 0.8rem;
+      display: none;
+      flex-direction: column;
+      gap: 0.4rem;
+      z-index: 55;
+      color: #fff;
+    }
+    body.theme-light .music-player {
+      background: rgba(255, 255, 255, 0.95);
+      color: #000;
+    }
+    body.theme-glass .music-player {
+      background: rgba(255, 255, 255, 0.6);
+      color: #000;
+    }
+
+    .music-player .player-info {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      flex: 1;
+    }
+    .music-player .player-title {
+      font-size: 1rem;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .music-player .player-artist {
+      font-size: 0.8rem;
+      opacity: 0.8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .music-player .player-cover {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    /* Progress bar wrapper with time labels */
+    .music-player .player-progress-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    .music-player .player-time {
+      font-size: 0.7rem;
+      min-width: 32px;
+      text-align: center;
+      opacity: 0.8;
+    }
+    .music-player .player-progress {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    body.theme-light .music-player .player-progress {
+      background: rgba(0, 0, 0, 0.15);
+    }
+    .music-player .player-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--secondary-color);
+      border-radius: 2px;
+    }
+    body.theme-light .music-player .player-progress-bar {
+      background: var(--primary-color);
+    }
+
+    /* Playback controls in mini player */
+    .music-player .player-controls {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .music-player .player-btn {
+      background: none;
+      border: none;
+      color: inherit;
+      font-size: 1.6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .music-player .player-btn:hover {
+      transform: scale(1.15);
+    }
+    .music-player .player-btn.active {
+      color: var(--accent-color);
+    }
+    body.theme-light .music-player .player-btn.active {
+      color: var(--primary-color);
+    }
+
+    /* Hide volume slider in collapsed player by default */
+    .music-player .player-volume {
+      display: none;
+    }
+    /* Show volume slider only in expanded/full player */
+    .music-player.expanded .player-volume {
+      display: flex;
+      margin-top: 1rem;
+    }
+    .music-player.expanded .player-volume input[type="range"] {
+      width: 120px;
+    }
+
+    /* Expanded (full‑screen) player overrides */
+    .music-player.expanded {
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      max-width: none;
+      height: 100%;
+      transform: none;
+      border-radius: 0;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 4rem;
+      padding-bottom: 2rem;
+      gap: 1.2rem;
+    }
+    .music-player.expanded .player-cover {
+      width: 220px;
+      height: 220px;
+      border-radius: 12px;
+    }
+    .music-player.expanded .player-info {
+      align-items: center;
+      text-align: center;
+    }
+    .music-player.expanded .player-title {
+      font-size: 1.4rem;
+    }
+    .music-player.expanded .player-artist {
+      font-size: 1rem;
+    }
+    .music-player.expanded .player-progress-wrapper {
+      width: 90%;
+    }
+    .music-player.expanded .player-time {
+      font-size: 0.9rem;
+    }
+    .music-player.expanded .player-controls {
+      justify-content: space-between;
+      width: 80%;
+    }
+    .music-player.expanded .player-btn {
+      font-size: 2.2rem;
+    }
+
+    /* Mini player layout enhancements */
+    .music-player .mini-player-header {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      width: 100%;
+    }
+    .music-player .mini-progress {
+      flex: 1;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .music-player .mini-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, var(--primary-color, #bb86fc), var(--accent-color, #03dac6));
+      border-radius: 2px;
+    }
+    body.theme-light .music-player .mini-progress {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    /* Hide the mini progress bar when expanded */
+    .music-player.expanded .mini-progress {
+      display: none;
+    }
+    /* Hide the full progress wrapper in collapsed mini player */
+    .music-player:not(.expanded) .player-progress-wrapper {
+      display: none;
+    }
+    /* Align mini player body items */
+    .music-player .mini-player-body {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      width: 100%;
+    }
+    .music-player .mini-player-body .player-info {
+      flex: 1;
+      min-width: 0;
+    }
+    /* In collapsed state, ensure the cover and controls are compact */
+    .music-player:not(.expanded) .player-cover {
+      width: 48px;
+      height: 48px;
+    }
+    .music-player:not(.expanded) .player-controls {
+      flex: 0;
+    }
+
+    /* Position toggle and close buttons in mini and full players */
+    /* Default position of toggle and close buttons: static in the mini header */
+    .music-player .player-toggle,
+    .music-player .player-close {
+      position: static;
+      font-size: 1.2rem;
+      padding: 0.2rem;
+      margin: 0;
+    }
+    /* When expanded, reposition the buttons to the top corners */
+    .music-player.expanded .player-toggle,
+    .music-player.expanded .player-close {
+      position: absolute;
+      top: 1rem;
+      font-size: 1.4rem;
+    }
+    .music-player.expanded .player-toggle {
+      left: 1rem;
+    }
+    .music-player.expanded .player-close {
+      right: 1rem;
+    }

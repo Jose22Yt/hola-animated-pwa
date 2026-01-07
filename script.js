@@ -250,6 +250,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const artistEl = document.getElementById('player-artist');
   const progressBar = document.getElementById('player-progress-bar');
   const progressContainer = document.getElementById('player-progress');
+  const miniProgressBar = document.getElementById('mini-progress-bar');
+  const playerCurrentTimeEl = document.getElementById('player-current-time');
+  const playerDurationEl = document.getElementById('player-duration');
   const playBtn = document.getElementById('player-play');
   const prevBtn = document.getElementById('player-prev');
   const nextBtn = document.getElementById('player-next');
@@ -257,6 +260,11 @@ window.addEventListener('DOMContentLoaded', () => {
   const playerToggleBtn = document.getElementById('player-toggle');
   const playerCloseBtn = document.getElementById('player-close');
   let isPlayerExpanded = false;
+  // Shuffle and repeat state flags
+  const shuffleBtn = document.getElementById('player-shuffle');
+  const repeatBtn = document.getElementById('player-repeat');
+  let isShuffle = false;
+  let isRepeat = false;
   // Radio buttons to filter music source
   const sourceRadios = document.querySelectorAll('input[name="music-source"]');
   // Create a single Audio element for playback
@@ -443,12 +451,37 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Update progress bar
-  if (audio && progressBar) {
+  // Helper to format seconds into mm:ss
+  function formatTime(seconds) {
+    if (isNaN(seconds) || !isFinite(seconds)) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return m + ':' + (s < 10 ? '0' + s : s);
+  }
+
+  // Update progress bars and time labels
+  if (audio) {
     audio.addEventListener('timeupdate', () => {
       if (audio.duration) {
         const progress = (audio.currentTime / audio.duration) * 100;
-        progressBar.style.width = isNaN(progress) ? '0%' : progress + '%';
+        if (progressBar) {
+          progressBar.style.width = isNaN(progress) ? '0%' : progress + '%';
+        }
+        if (miniProgressBar) {
+          miniProgressBar.style.width = isNaN(progress) ? '0%' : progress + '%';
+        }
+      }
+      if (playerCurrentTimeEl) {
+        playerCurrentTimeEl.textContent = formatTime(audio.currentTime);
+      }
+      if (playerDurationEl) {
+        playerDurationEl.textContent = formatTime(audio.duration);
+      }
+    });
+    // Ensure duration label updates once metadata is loaded
+    audio.addEventListener('loadedmetadata', () => {
+      if (playerDurationEl) {
+        playerDurationEl.textContent = formatTime(audio.duration);
       }
     });
   }
@@ -462,17 +495,50 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  // Reset play button when track ends
+
+  // Seek when clicking the mini progress bar
+  const miniProgress = document.getElementById('mini-progress');
+  if (miniProgress) {
+    miniProgress.addEventListener('click', (e) => {
+      const rect = miniProgress.getBoundingClientRect();
+      const percent = (e.clientX - rect.left) / rect.width;
+      if (audio.duration) {
+        audio.currentTime = percent * audio.duration;
+      }
+    });
+  }
+  // Handle end of track: repeat or play next
   audio.addEventListener('ended', () => {
+    if (isRepeat) {
+      // Restart current track
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+    } else {
+      // Advance to next track if available
+      if (currentPlaylist && currentPlaylist.length > 0) {
+        playNext();
+      }
+    }
     if (playBtn) {
-      playBtn.textContent = '▶';
+      playBtn.textContent = '⏸';
     }
   });
 
   // Navigate to the next track in the playlist
   function playNext() {
     if (!currentPlaylist || currentPlaylist.length === 0) return;
-    currentTrackIndex = (currentTrackIndex + 1) % currentPlaylist.length;
+    if (isShuffle) {
+      // pick a random track different from current
+      let nextIndex = currentTrackIndex;
+      if (currentPlaylist.length > 1) {
+        while (nextIndex === currentTrackIndex) {
+          nextIndex = Math.floor(Math.random() * currentPlaylist.length);
+        }
+      }
+      currentTrackIndex = nextIndex;
+    } else {
+      currentTrackIndex = (currentTrackIndex + 1) % currentPlaylist.length;
+    }
     const nextTrack = currentPlaylist[currentTrackIndex];
     if (nextTrack) {
       playTrack(nextTrack);
@@ -515,18 +581,45 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Toggle shuffle and repeat
+  if (shuffleBtn) {
+    shuffleBtn.addEventListener('click', () => {
+      isShuffle = !isShuffle;
+      if (isShuffle) {
+        shuffleBtn.classList.add('active');
+      } else {
+        shuffleBtn.classList.remove('active');
+      }
+    });
+  }
+  if (repeatBtn) {
+    repeatBtn.addEventListener('click', () => {
+      isRepeat = !isRepeat;
+      if (isRepeat) {
+        repeatBtn.classList.add('active');
+      } else {
+        repeatBtn.classList.remove('active');
+      }
+    });
+  }
+
   // Toggle expand/collapse of the music player
   if (playerToggleBtn && musicPlayer) {
     playerToggleBtn.addEventListener('click', () => {
       isPlayerExpanded = !isPlayerExpanded;
+      const bottomNav = document.querySelector('.bottom-nav');
       if (isPlayerExpanded) {
         musicPlayer.classList.add('expanded');
         playerToggleBtn.textContent = '▼';
         playerToggleBtn.title = 'Minimizar';
+        // Hide the bottom navigation bar when expanded
+        if (bottomNav) bottomNav.style.display = 'none';
       } else {
         musicPlayer.classList.remove('expanded');
         playerToggleBtn.textContent = '▲';
         playerToggleBtn.title = 'Expandir';
+        // Show the bottom navigation bar again
+        if (bottomNav) bottomNav.style.display = 'flex';
       }
     });
   }
@@ -539,10 +632,14 @@ window.addEventListener('DOMContentLoaded', () => {
       musicPlayer.style.display = 'none';
       musicPlayer.classList.remove('expanded');
       isPlayerExpanded = false;
+      // Reset toggle button
       if (playerToggleBtn) {
         playerToggleBtn.textContent = '▲';
         playerToggleBtn.title = 'Expandir';
       }
+      // Show the bottom navigation bar again when closed
+      const bottomNav = document.querySelector('.bottom-nav');
+      if (bottomNav) bottomNav.style.display = 'flex';
     });
   }
 });
