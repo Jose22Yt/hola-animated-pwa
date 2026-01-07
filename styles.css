@@ -13,8 +13,9 @@
   --secondary-color: #03dac5;
   --accent-color: #ff0266;
   --bg-gradient: linear-gradient(135deg, #6200ea, #ff0266, #03dac5);
-  /* Scale factor for DPI/resolution adjustments (1 = 100%). Updated via JS */
-  --dpi-scale: 1;
+  /* Height of the bottom navigation bar used for spacing calculations */
+  --nav-height: 70px;
+  /* Removed DPI scaling: the interface now uses a fixed scale for all devices */
   /* Global animation speed multiplier (1 = normal). Updated via JS */
   --anim-speed: 1;
 }
@@ -30,7 +31,7 @@ body {
   /* Apply DPI scaling through CSS variable. This multiplies the base font size.
      The --dpi-scale variable is updated dynamically via JavaScript when the
      user moves the DPI slider in settings. */
-  font-size: calc(16px * var(--dpi-scale));
+  font-size: 16px;
 }
 
 /* Each section fills the available space minus the navigation bar.  Sections
@@ -41,7 +42,9 @@ body {
   justify-content: center;
   align-items: center;
   height: calc(100vh - 70px);
-  padding-bottom: 70px; /* leave room for the nav bar */
+  /* Provide space for nav bar and mini player */
+  /* Reserve more space for the raised mini player so content never overlaps */
+  padding-bottom: calc(var(--nav-height) + 13rem);
   text-align: center;
 }
 
@@ -79,6 +82,9 @@ body {
   border: none;
   cursor: pointer;
   padding: 0;
+
+  /* Smooth animation on state change */
+  transition: transform 0.25s ease, color 0.25s ease;
 }
 
 /* Icon inside navigation items */
@@ -91,6 +97,8 @@ body {
 /* Highlight the active tab */
 .nav-item.active {
   color: var(--secondary-color);
+  /* Lift the active nav item for a subtle iOS‑like effect */
+  transform: translateY(-4px) scale(1.1);
 }
 
 .nav-item.active .nav-icon {
@@ -131,7 +139,8 @@ body {
   /* Scale the entire interface according to the DPI setting. The zoom property
      scales all child elements proportionally. This is updated via the
      --dpi-scale CSS variable in script.js when the user moves the DPI slider. */
-  zoom: var(--dpi-scale);
+  /* Disable zoom scaling; keep at default */
+  zoom: 1;
 }
 
 /* Animate the gradient to create a subtle shifting effect */
@@ -154,6 +163,11 @@ body {
   animation-duration: calc(1.5s * var(--anim-speed));
   animation-timing-function: ease-out;
   animation-fill-mode: forwards;
+
+  /* Constrain the app to a mobile-friendly width and center it */
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
 }
 
 /* Fade the container in from below */
@@ -241,7 +255,8 @@ body {
 .theme-options {
   display: flex;
   gap: 1rem;
-  margin-top: 1rem;
+  /* Remove extra top margin when inside a settings-group card */
+  margin-top: 0.5rem;
 }
 
 .theme-btn {
@@ -251,10 +266,21 @@ body {
   border-radius: 50px;
   cursor: pointer;
   transition: transform 0.2s;
+
+  /* Align icon and text horizontally within theme buttons */
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .theme-btn:hover {
   transform: translateY(-3px);
+}
+
+/* Ensure icons inside theme buttons have uniform size */
+.theme-btn .icon {
+  width: 1.2rem;
+  height: 1.2rem;
 }
 
 /* Specific styling for light and dark theme selection buttons */
@@ -341,15 +367,59 @@ body.theme-glass .nav-item.active .nav-icon {
 }
 
 /* Settings page layout */
+/*
+ * Settings groups are presented as card‑like containers with a soft
+ * blurred backdrop and rounded corners.  They expand to the width of
+ * the app but never exceed 500px on large screens.  The interior has
+ * consistent padding for comfortable touch targets.  The overall
+ * appearance adapts to the current theme: light, dark or glass.
+ */
 .settings-group {
-  margin: 1rem 0;
+  margin: 1rem auto;
   width: 90%;
-  max-width: 500px;
+  max-width: 480px;
   text-align: left;
+  padding: 1rem;
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  background: rgba(20, 20, 22, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
 .settings-group h3 {
   margin: 0 0 0.5rem;
-  font-size: 1.2rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Theme specific overrides for settings cards */
+body.theme-light .settings-group {
+  background: rgba(255, 255, 255, 0.95);
+  color: #000;
+  border-color: rgba(0, 0, 0, 0.05);
+}
+body.theme-dark .settings-group {
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+body.theme-glass .settings-group {
+  background: rgba(255, 255, 255, 0.6);
+  color: #000;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Icon displayed before each settings label */
+.setting-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-right: 0.5rem;
+  color: inherit;
 }
 .settings-group label {
   display: flex;
@@ -405,7 +475,8 @@ body.no-animations * {
   display: flex;
   gap: 0.5rem;
   width: 90%;
-  max-width: 600px;
+  /* Limit search bar to the app width to prevent overflow on mobile */
+  max-width: 480px;
   margin: 1rem auto 0;
 }
 .music-search input {
@@ -438,7 +509,7 @@ body.no-animations * {
   gap: 1rem;
   margin: 0.5rem auto;
   width: 90%;
-  max-width: 600px;
+  max-width: 480px;
   font-size: 0.9rem;
   color: inherit;
 }
@@ -455,7 +526,8 @@ body.no-animations * {
 /* Container for search results; scrollable when content overflows */
 .music-results {
   width: 90%;
-  max-width: 600px;
+  /* Keep results container within the app width */
+  max-width: 480px;
   margin: 1rem auto;
   flex: 1;
   overflow-y: auto;
@@ -1108,15 +1180,20 @@ body.theme-glass .section {
 }
 
 /* Adjust the bottom padding of sections to make space for the nav
-   bar and mini player */
+   bar and mini player.  We keep extra room so the mini player never
+   overlaps the content. */
 .section {
-  padding-bottom: calc(var(--nav-height) + 5rem);
+  padding-bottom: calc(var(--nav-height) + 11rem);
 }
 
 /* Mini player container */
 .mini-player {
   position: fixed;
-  bottom: calc(var(--nav-height) + 0.75rem);
+  /* Raise the mini player well above the navigation bar to avoid overlap.  We
+     increase the offset so the player sits comfortably above the nav bar on
+     small screens and never hides behind it. */
+  /* Raise the mini player higher above the navigation bar to avoid overlap */
+  bottom: calc(var(--nav-height) + 8rem);
   left: 50%;
   transform: translateX(-50%);
   width: min(94vw, 480px);
@@ -1242,6 +1319,46 @@ body.theme-glass .mini-player {
 /* Hide/show helper */
 .hidden {
   display: none !important;
+}
+
+/*
+ * Page transition effects
+ *
+ * To create a smooth, iOS‑like navigation experience, each page (section)
+ * is layered on top of one another and animated as the user switches
+ * between tabs.  Sections are absolutely positioned within the app
+ * wrapper so they occupy the same space and can fade/slide in when
+ * activated.  Non‑active sections are hidden from pointer events to
+ * prevent accidental interaction.  The transition curves and duration
+ * leverage the global --anim-speed variable so users can adjust
+ * animation speed from the settings.  These rules are appended at the
+ * end of the stylesheet to override any earlier `.section` styling.
+ */
+#app {
+  position: relative;
+  overflow-x: hidden;
+}
+/*
+ * Animate section transitions using a subtle slide/fade effect.  Each
+ * section starts slightly lower and transparent, and transitions into
+ * view when it becomes active.  Pointer events are disabled for
+ * inactive sections to prevent interaction with hidden pages.  We do
+ * not absolutely position sections here; they remain in normal flow
+ * so that content sizes naturally.  The bottom padding on sections
+ * (defined above) still reserves space for the mini player and nav.
+ */
+.section {
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity calc(0.35s * var(--anim-speed, 1)) ease-in-out,
+    transform calc(0.35s * var(--anim-speed, 1)) ease-in-out;
+  pointer-events: none;
+}
+.section.active {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 /* Full player overlay */
