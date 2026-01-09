@@ -82,14 +82,37 @@ window.addEventListener('DOMContentLoaded', () => {
   const lightBtn = document.getElementById('theme-light');
   const darkBtn = document.getElementById('theme-dark');
   const glassBtn = document.getElementById('theme-glass');
-  // Apply saved theme preference on load
-  const savedTheme = localStorage.getItem('theme');
-  if (savedTheme === 'light') {
-    document.body.classList.add('theme-light');
-  } else if (savedTheme === 'dark') {
-    document.body.classList.add('theme-dark');
-  } else if (savedTheme === 'glass') {
-    document.body.classList.add('theme-glass');
+  const autoBtn = document.getElementById('theme-auto');
+  // Helper to select a theme based on time of day.  If between
+  // 06:00 and 18:00, choose light; otherwise choose dark.  When
+  // called, this function also updates localStorage 'theme' so
+  // subsequent page loads know which concrete theme was applied.
+  function applyAutoTheme() {
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 18) {
+      document.body.classList.remove('theme-dark', 'theme-glass');
+      document.body.classList.add('theme-light');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.body.classList.remove('theme-light', 'theme-glass');
+      document.body.classList.add('theme-dark');
+      localStorage.setItem('theme', 'dark');
+    }
+  }
+
+  // Apply saved theme or auto theme preference on load
+  const autoPref = localStorage.getItem('autoTheme') === 'on';
+  if (autoPref) {
+    applyAutoTheme();
+  } else {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('theme-light');
+    } else if (savedTheme === 'dark') {
+      document.body.classList.add('theme-dark');
+    } else if (savedTheme === 'glass') {
+      document.body.classList.add('theme-glass');
+    }
   }
   // Theme button click handlers
   if (lightBtn) {
@@ -97,6 +120,8 @@ window.addEventListener('DOMContentLoaded', () => {
       document.body.classList.remove('theme-dark', 'theme-glass');
       document.body.classList.add('theme-light');
       localStorage.setItem('theme', 'light');
+      // Disable auto theme when selecting a specific theme
+      localStorage.setItem('autoTheme', 'off');
       playClickSound();
     });
   }
@@ -105,6 +130,8 @@ window.addEventListener('DOMContentLoaded', () => {
       document.body.classList.remove('theme-light', 'theme-glass');
       document.body.classList.add('theme-dark');
       localStorage.setItem('theme', 'dark');
+      // Disable auto theme when selecting a specific theme
+      localStorage.setItem('autoTheme', 'off');
       playClickSound();
     });
   }
@@ -113,6 +140,17 @@ window.addEventListener('DOMContentLoaded', () => {
       document.body.classList.remove('theme-light', 'theme-dark');
       document.body.classList.add('theme-glass');
       localStorage.setItem('theme', 'glass');
+      // Disable auto theme when selecting a specific theme
+      localStorage.setItem('autoTheme', 'off');
+      playClickSound();
+    });
+  }
+
+  // Auto theme button handler
+  if (autoBtn) {
+    autoBtn.addEventListener('click', () => {
+      localStorage.setItem('autoTheme', 'on');
+      applyAutoTheme();
       playClickSound();
     });
   }
@@ -120,7 +158,10 @@ window.addEventListener('DOMContentLoaded', () => {
   // Settings controls
   const animationsToggle = document.getElementById('animations-toggle');
   const soundsToggle = document.getElementById('sounds-toggle');
-  const dpiRange = document.getElementById('dpi-range');
+  // DPI scaling has been removed; previously there was a slider to adjust
+  // dpi-scale.  We keep a reference here undefined to avoid code paths
+  // referencing an element that no longer exists.
+  const dpiRange = null;
   const fontSelect = document.getElementById('font-select');
   const animationRange = document.getElementById('animation-range');
 
@@ -171,18 +212,7 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('sounds', soundsToggle.checked ? 'on' : 'off');
     });
   }
-  if (dpiRange) {
-    const savedDpi = localStorage.getItem('dpi');
-    if (savedDpi) {
-      dpiRange.value = savedDpi;
-      document.documentElement.style.setProperty('--dpi-scale', savedDpi);
-    }
-    dpiRange.addEventListener('input', () => {
-      const val = dpiRange.value;
-      document.documentElement.style.setProperty('--dpi-scale', val);
-      localStorage.setItem('dpi', val);
-    });
-  }
+  // DPI control removed: no event handling is needed here.
   if (fontSelect) {
     const applyFontClass = (font) => {
       // Remove all possible font classes first
@@ -244,6 +274,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const musicQuery = document.getElementById('music-query');
   const musicBtn = document.getElementById('music-search-btn');
   const musicResults = document.getElementById('music-results');
+
+  // Skeleton loader for music search
+  const musicSkeleton = document.getElementById('music-skeleton');
   /*
    * Reproductor avanzado
    *
@@ -334,15 +367,23 @@ window.addEventListener('DOMContentLoaded', () => {
   // Update play/pause icons on both players
   function updatePlayIcons() {
     if (audio.paused) {
+      // Show play icons and hide pause icons on both players
       playIcon.classList.remove('hidden');
       pauseIcon.classList.add('hidden');
       fPlayIcon.classList.remove('hidden');
       fPauseIcon.classList.add('hidden');
+      // Remove breathing animation when audio is paused
+      btnPlay.classList.remove('playing');
+      fPlay.classList.remove('playing');
     } else {
+      // Hide play icons and show pause icons
       playIcon.classList.add('hidden');
       pauseIcon.classList.remove('hidden');
       fPlayIcon.classList.add('hidden');
       fPauseIcon.classList.remove('hidden');
+      // Apply breathing animation when playing
+      btnPlay.classList.add('playing');
+      fPlay.classList.add('playing');
     }
   }
 
@@ -569,9 +610,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Perform a search across Audius and Piped
   async function searchMusic(query) {
-    // Clear previous results and show a loading message
+    // Clear previous results and show skeleton loader
+    if (musicSkeleton) {
+      musicSkeleton.classList.remove('hidden');
+    }
     if (musicResults) {
-      musicResults.innerHTML = '<p>Buscando…</p>';
+      // Hide results container during loading
+      musicResults.classList.add('hidden');
+      musicResults.innerHTML = '';
     }
     let tracks = [];
     // Determine selected source filter
@@ -637,8 +683,12 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     // Save playlist for navigation
     currentPlaylist = tracks;
-    // Render results
+    // Hide skeleton and show results
+    if (musicSkeleton) {
+      musicSkeleton.classList.add('hidden');
+    }
     if (musicResults) {
+      musicResults.classList.remove('hidden');
       musicResults.innerHTML = '';
       if (!tracks.length) {
         musicResults.innerHTML = '<p>No se encontraron resultados.</p>';
