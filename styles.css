@@ -1214,7 +1214,10 @@ body.theme-glass .section {
   /* Raise the mini player even further above the navigation bar and OS gesture
      areas.  By using a larger offset (14rem), we ensure the mini player
      floats comfortably above the pill navigation bar on all devices. */
-  bottom: calc(var(--nav-height) + 14rem);
+  /* Raise the mini player further above the navigation bar so it never
+     overlaps with the nav or OS gesture areas.  The offset is
+     generous to accommodate devices with taller on‑screen navigation. */
+  bottom: calc(var(--nav-height) + 16rem);
   left: 50%;
   transform: translateX(-50%);
   width: min(94vw, 480px);
@@ -1467,25 +1470,49 @@ body.theme-glass .mini-player {
 }
 
 /* Full player overlay */
+/*
+ * Redesigned full player overlay (February 2026)
+ *
+ * The original full‑screen music player covered the entire viewport,
+ * which felt overwhelming on mobile devices.  To more closely
+ * resemble popular streaming apps, the full player is now a
+ * floating card anchored near the top of the screen.  It uses the
+ * currently playing track’s cover as a blurred background with a
+ * translucent overlay so controls remain readable.  The container
+ * has rounded corners and a drop shadow to lift it from the page.
+ */
 .full-player {
+  /* Center horizontally and position near the top */
   position: fixed;
-  inset: 0;
+  left: 50%;
+  top: 6vh;
+  transform: translateX(-50%);
+  /* Constrain width to mobile devices */
+  width: min(92vw, 480px);
+  max-width: 480px;
+  /* Allow height to adapt to content but limit it */
+  max-height: 80vh;
+  border-radius: 24px;
+  overflow: hidden;
   z-index: 80;
-  backdrop-filter: blur(20px);
-  background: rgba(0, 0, 0, 0.85);
-  color: #ffffff;
+  color: inherit;
   display: flex;
   flex-direction: column;
-  padding: 18px 16px 20px;
-  gap: 14px;
+  padding: 1.2rem 1rem 1.5rem;
+  gap: 1rem;
+  /* The background image is set dynamically via JavaScript to
+     include the album artwork and a dark/light overlay.  A
+     fallback colour ensures readability before the image loads. */
+  background: rgba(0, 0, 0, 0.75);
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
 }
 body.theme-light .full-player {
-  background: rgba(255, 255, 255, 0.9);
-  color: #000000;
+  background: rgba(255, 255, 255, 0.85);
 }
 body.theme-glass .full-player {
-  background: rgba(255, 255, 255, 0.6);
-  color: #000000;
+  background: rgba(255, 255, 255, 0.55);
 }
 
 .full-top {
@@ -1516,6 +1543,14 @@ body.theme-glass .full-player {
   object-fit: cover;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
   margin: 0 auto;
+}
+
+/* Hide the separate cover image in the redesigned full player.  The
+   album artwork is now used as a background image on the container
+   itself.  The full-art container remains in the DOM for
+   accessibility but is not displayed. */
+.full-player .full-art {
+  display: none;
 }
 .full-info {
   text-align: center;

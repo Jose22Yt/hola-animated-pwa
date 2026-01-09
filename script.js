@@ -436,6 +436,29 @@ window.addEventListener('DOMContentLoaded', () => {
     } else {
       fullCover.src = 'icons/icon-512.png';
     }
+
+    /*
+     * Set the full player’s background using the track’s album art.
+     * We overlay a semi‑transparent gradient to ensure text remains
+     * readable regardless of the artwork.  The overlay colour adapts
+     * to the current theme: dark themes use a dark overlay, light
+     * themes a light one, and the glass theme uses a subtle frosted
+     * overlay.
+     */
+    if (track.cover) {
+      let overlay;
+      if (document.body.classList.contains('theme-light')) {
+        overlay = 'linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8))';
+      } else if (document.body.classList.contains('theme-glass')) {
+        overlay = 'linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5))';
+      } else {
+        overlay = 'linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75))';
+      }
+      fullPlayer.style.backgroundImage = `${overlay}, url('${track.cover}')`;
+    } else {
+      fullPlayer.style.backgroundImage = '';
+    }
+
     // Play the track
     await audio.play().catch((e) => console.error('Reproducción fallida:', e));
     // Show mini player
