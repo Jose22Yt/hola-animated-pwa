@@ -7,15 +7,22 @@
  * Progressive Web App on their device.
  */
 
-/* Colour palette using CSS variables */
+/* Colour palette using CSS variables
+   Updated January 2026 to use a refined gradient palette that
+   evokes a premium, modern feel.  The primary and accent colours
+   draw inspiration from popular streaming apps (deep purple,
+   vibrant pink and warm orange) and pair with a calming teal
+   secondary colour. */
 :root {
-  --primary-color: #6200ea;
-  --secondary-color: #03dac5;
-  --accent-color: #ff0266;
-  --bg-gradient: linear-gradient(135deg, #6200ea, #ff0266, #03dac5);
-  /* Height of the bottom navigation bar used for spacing calculations */
+  --primary-color: #7a5cff;    /* deep purple */
+  --secondary-color: #00c4b4;  /* teal accent */
+  --accent-color: #ff8a00;     /* warm orange */
+  /* Use a dreamy gradient that transitions through purple, pink and orange. */
+  --bg-gradient: linear-gradient(135deg, #7a5cff, #e52e71, #ff8a00);
+  /* Height of the bottom navigation bar used for spacing calculations.  This
+     initial value is overridden later in the file when we redefine
+     --nav-height for responsive layouts. */
   --nav-height: 70px;
-  /* Removed DPI scaling: the interface now uses a fixed scale for all devices */
   /* Global animation speed multiplier (1 = normal). Updated via JS */
   --anim-speed: 1;
 }
@@ -28,9 +35,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   overflow: hidden;
 
-  /* Apply DPI scaling through CSS variable. This multiplies the base font size.
-     The --dpi-scale variable is updated dynamically via JavaScript when the
-     user moves the DPI slider in settings. */
+  /* Use a fixed base font size for consistency across devices.  DPI scaling
+     controls have been removed, and the font size is no longer adjusted
+     dynamically. */
   font-size: 16px;
 }
 
@@ -1145,7 +1152,10 @@ body.theme-glass .player-progress-bar {
    bar.  This value is used to offset the mini player from the bottom
    of the screen. */
 :root {
-  --nav-height: 4.5rem;
+  /* Set the navigation bar height for the final layout.  A slightly
+     larger nav height (5rem) gives icons and labels more breathing
+     space while still fitting on modern mobile screens. */
+  --nav-height: 5rem;
 }
 
 /* Ensure the page does not scroll horizontally and fits on mobile
@@ -1183,7 +1193,10 @@ body.theme-glass .section {
    bar and mini player.  We keep extra room so the mini player never
    overlaps the content. */
 .section {
-  padding-bottom: calc(var(--nav-height) + 11rem);
+  /* Provide ample space for the raised mini player.  Increase the
+     bottom padding so that content never overlaps the mini player
+     even on small screens. */
+  padding-bottom: calc(var(--nav-height) + 12rem);
 }
 
 /* Mini player container */
@@ -1193,7 +1206,15 @@ body.theme-glass .section {
      increase the offset so the player sits comfortably above the nav bar on
      small screens and never hides behind it. */
   /* Raise the mini player higher above the navigation bar to avoid overlap */
-  bottom: calc(var(--nav-height) + 8rem);
+  /* Raise the mini player further above the navigation bar so it never
+     overlaps with the bottom nav or OS gesture area on modern phones. */
+  /* Raise the mini player even further above the navigation bar.  The
+     additional 2rem offset ensures it never collides with OS gesture
+     areas or the nav bar, providing a comfortable gap. */
+  /* Raise the mini player even further above the navigation bar and OS gesture
+     areas.  By using a larger offset (14rem), we ensure the mini player
+     floats comfortably above the pill navigation bar on all devices. */
+  bottom: calc(var(--nav-height) + 14rem);
   left: 50%;
   transform: translateX(-50%);
   width: min(94vw, 480px);
@@ -1319,6 +1340,90 @@ body.theme-glass .mini-player {
 /* Hide/show helper */
 .hidden {
   display: none !important;
+}
+
+/* =====================================================================
+ * Micro‑interactions and iOS‑style animations
+ *
+ * Inspired by 2026 design trends that emphasize micro‑interactions and
+ * fluid animations to engage users【439139057776283†L106-L117】, we apply
+ * polished transitions and subtle scaling effects to navigation items,
+ * buttons and cards.  These enhancements make the PWA feel more like
+ * a native mobile app without overwhelming the user.  The active tab
+ * gently lifts to signify selection, theme buttons respond to touch
+ * with a slight compression, and settings cards float on hover.
+ */
+
+/* Navigation item transitions */
+.bottom-nav .nav-item {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              color 0.3s ease;
+}
+.bottom-nav .nav-item:active {
+  transform: scale(0.92);
+}
+/* Raise the active tab slightly */
+.bottom-nav .nav-item.active {
+  transform: translateY(-4px);
+  color: var(--secondary-color);
+}
+/* Dot indicator: fade and slide up when active */
+.bottom-nav .nav-item .nav-dot {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--secondary-color);
+  margin-top: 4px;
+  opacity: 0;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.bottom-nav .nav-item.active .nav-dot {
+  opacity: 1;
+  transform: translateY(-2px);
+}
+
+/* Theme button styling and feedback */
+.theme-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.theme-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+.theme-btn:active {
+  transform: scale(0.95);
+}
+
+/* Settings card feedback */
+.settings-group {
+  transition: background 0.4s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+.settings-group:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Control and icon buttons feedback */
+.ctrl,
+.mini-icon,
+.full-icon {
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+.ctrl:active,
+.mini-icon:active,
+.full-icon:active {
+  transform: scale(0.9);
 }
 
 /*
@@ -1451,4 +1556,131 @@ body.theme-glass .full-player {
   border-radius: 26px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ------------------------------------------------------------------ */
+/* Skeleton loader styles for the music search results.  When the user
+   searches for music, placeholder rows with shimmering animation
+   communicate that content is loading.  Colors adjust based on
+   the current theme to maintain contrast. */
+
+.music-skeleton {
+  display: none;
+  padding-top: 1rem;
+}
+
+.music-skeleton .skeleton-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.skeleton-img,
+.skeleton-line {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.skeleton-img {
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.skeleton-lines {
+  flex: 1;
+}
+
+.skeleton-line {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  margin-bottom: 6px;
+}
+
+.skeleton-line.short {
+  width: 50%;
+}
+
+.skeleton-img::before,
+.skeleton-line::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: skeleton-shimmer calc(1.2s * var(--anim-speed)) infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Theme overrides for skeleton backgrounds and shimmering color */
+body.theme-light .skeleton-img,
+body.theme-light .skeleton-line {
+  background: rgba(0, 0, 0, 0.08);
+}
+body.theme-light .skeleton-img::before,
+body.theme-light .skeleton-line::before {
+  background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);
+}
+body.theme-glass .skeleton-img,
+body.theme-glass .skeleton-line {
+  background: rgba(255, 255, 255, 0.15);
+}
+body.theme-glass .skeleton-img::before,
+body.theme-glass .skeleton-line::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+}
+
+/* Micro‑interaction styles: gentle scaling on press and hover to
+   provide feedback.  These transitions apply to various buttons and
+   interactive elements throughout the app. */
+.theme-btn,
+.ctrl,
+.nav-item,
+.music-item,
+.install-btn,
+.mini-icon,
+.full-icon {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.theme-btn:active,
+.ctrl:active,
+.nav-item:active,
+.music-item:active,
+.install-btn:active,
+.mini-icon:active,
+.full-icon:active {
+  transform: scale(0.95);
+}
+
+.nav-item:hover,
+.theme-btn:hover,
+.ctrl:hover,
+.install-btn:hover,
+.mini-icon:hover,
+.full-icon:hover {
+  transform: scale(1.05);
+}
+
+/* ------------------------------------------------------------------ */
+/* Breathing animation for play buttons
+   When a track is playing, the play buttons pulse gently to catch the
+   user's eye without being distracting.  The `.playing` class is
+   toggled via JavaScript when audio starts or stops. */
+@keyframes breath {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* Apply breathing to play buttons when the `.playing` class is set */
+.ctrl.play.playing {
+  animation: breath 2.5s ease-in-out infinite;
 }
