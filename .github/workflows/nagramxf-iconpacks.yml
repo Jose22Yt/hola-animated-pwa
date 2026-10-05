@@ -61,8 +61,18 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager             "platform-tools"             "platforms;android-${ANDROID_API}"             "build-tools;${BUILD_TOOLS}"             "ndk;${NDK_VERSION}"             "cmake;${CMAKE_VERSION}"
+          SDKMANAGER="${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "${SDKMANAGER}" ]; then
+            SDKMANAGER="$(find "${ANDROID_SDK_ROOT}" -type f -name sdkmanager | head -n 1)"
+          fi
+          test -x "${SDKMANAGER}"
+          yes | "${SDKMANAGER}" --licenses >/dev/null || true
+          "${SDKMANAGER}" \
+            "platform-tools" \
+            "platforms;android-${ANDROID_API}" \
+            "build-tools;${BUILD_TOOLS}" \
+            "ndk;${NDK_VERSION}" \
+            "cmake;${CMAKE_VERSION}"
 
       - name: Clone exact NagramXF 1251 source
         shell: bash
