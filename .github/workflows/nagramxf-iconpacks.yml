@@ -114,6 +114,7 @@ jobs:
           set -euxo pipefail
           cd NagramXF
 
+          rm -f TMessagesProj/release.keystore
           keytool -genkeypair -v             -keystore TMessagesProj/release.keystore             -storepass android             -alias androidkey             -keypass android             -keyalg RSA -keysize 2048 -validity 10000             -dname "CN=NagramXF Icon Packs, OU=Private Build, O=Jose22Yt, L=Local, ST=Local, C=CO"
 
           cat > local.properties <<EOF
