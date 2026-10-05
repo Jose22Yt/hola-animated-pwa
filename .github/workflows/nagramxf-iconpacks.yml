@@ -82,7 +82,7 @@ jobs:
           cd NagramXF
           git submodule update --init --recursive --depth=1
           echo "Source commit: $(git rev-parse HEAD)"
-          test "$(git rev-parse --short HEAD)" = "30dcd6c"
+          test "$(git rev-parse HEAD)" = "30dcd6ce7b5b0279fa86f302ca61cd272bfa3068"
 
       - name: Apply native icon-pack patch
         shell: bash
